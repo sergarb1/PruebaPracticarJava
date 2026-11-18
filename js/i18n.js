@@ -40,7 +40,7 @@ export function setLanguage(lang) {
   currentLang = lang;
 
   const clsOn = 'px-2.5 py-1 rounded bg-amber-500 text-slate-900 shadow';
-  const clsOff = 'px-2.5 py-1 rounded text-ide-muted hover:text-white';
+  const clsOff = 'px-2.5 py-1 rounded text-ide-muted hover:text-ide-heading';
   const bEs = document.getElementById('btn-lang-es');
   const bVa = document.getElementById('btn-lang-va');
   if (bEs) bEs.className = lang === 'es' ? clsOn : clsOff;

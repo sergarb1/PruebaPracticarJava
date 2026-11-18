@@ -39,10 +39,10 @@ function setEditorFilter(lvl) {
     const b = document.getElementById(`flt-edt-${l}`);
     if (b) {
       if (l === lvl) {
-        b.className = 'px-2.5 py-1 rounded bg-ide-surface text-white font-bold';
+        b.className = 'px-2.5 py-1 rounded bg-ide-surface text-ide-heading font-bold';
       } else {
         const col =
-          l === 'easy' ? 'text-emerald-400' : l === 'medium' ? 'text-amber-400' : l === 'hard' ? 'text-rose-400' : 'text-slate-400';
+          l === 'easy' ? 'text-ide-success' : l === 'medium' ? 'text-ide-warning' : l === 'hard' ? 'text-ide-danger' : 'text-ide-muted';
         b.className = `px-2.5 py-1 rounded ${col} hover:bg-ide-surface`;
       }
     }
@@ -147,7 +147,7 @@ function openSolutionModal() {
   if (statusBadge) {
     if (isCompleted) {
       statusBadge.textContent = isEs() ? '✔ Superado' : '✔ Superat';
-      statusBadge.className = 'text-[11px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold';
+      statusBadge.className = 'text-[11px] font-mono px-2 py-0.5 rounded bg-ide-success/20 text-ide-success font-bold';
     } else {
       statusBadge.textContent = isEs() ? 'En desarrollo' : 'En desenrotllament';
       statusBadge.className = 'text-[11px] font-mono px-2 py-0.5 rounded bg-ide-card text-ide-muted';

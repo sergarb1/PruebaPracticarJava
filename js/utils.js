@@ -19,7 +19,7 @@ export function getLevelLabel(level) {
 }
 
 export function getBadgeClass(level) {
-  if (level === 'easy') return 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
-  if (level === 'medium') return 'bg-amber-500/10 text-amber-400 border border-amber-500/20';
-  return 'bg-rose-500/10 text-rose-400 border border-rose-500/20';
+  if (level === 'easy') return 'bg-ide-success/10 text-ide-success border border-ide-success/20';
+  if (level === 'medium') return 'bg-ide-warning/10 text-ide-warning border border-ide-warning/20';
+  return 'bg-ide-danger/10 text-ide-danger border border-ide-danger/20';
 }

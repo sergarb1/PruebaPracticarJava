@@ -42,10 +42,10 @@ function setBlockFilter(lvl) {
     const b = document.getElementById(`flt-blk-${l}`);
     if (b) {
       if (l === lvl) {
-        b.className = 'px-2.5 py-1 rounded bg-ide-surface text-white font-bold';
+        b.className = 'px-2.5 py-1 rounded bg-ide-surface text-ide-heading font-bold';
       } else {
         const col =
-          l === 'easy' ? 'text-emerald-400' : l === 'medium' ? 'text-amber-400' : l === 'hard' ? 'text-rose-400' : 'text-slate-400';
+          l === 'easy' ? 'text-ide-success' : l === 'medium' ? 'text-ide-warning' : l === 'hard' ? 'text-ide-danger' : 'text-ide-muted';
         b.className = `px-2.5 py-1 rounded ${col} hover:bg-ide-surface`;
       }
     }
@@ -92,8 +92,8 @@ function renderBlockActivity(id) {
     act.palette.forEach((item) => {
       const div = document.createElement('div');
       div.className =
-        'p-2.5 rounded-lg bg-ide-bg hover:bg-ide-card border border-ide-border cursor-pointer transition-all flex items-center justify-between text-xs font-mono text-amber-300 hover:border-amber-400/50';
-      div.innerHTML = `<span>${escapeHtml(item.text)}</span> <span class="text-ide-accent text-sm">➕</span>`;
+        'p-2.5 rounded-lg bg-ide-bg hover:bg-ide-card border border-ide-border cursor-pointer transition-all flex items-center justify-between text-xs font-mono text-ide-warning hover:border-ide-warning/50';
+      div.innerHTML = `<span>${escapeHtml(item.text)}</span> <span class="text-ide-link text-sm">➕</span>`;
       div.addEventListener('click', () => addBlockToWorkspace(item));
       palContainer.appendChild(div);
     });
@@ -138,7 +138,7 @@ function renderWorkspaceUI() {
 
   blockWorkspace.forEach((b, idx) => {
     const row = document.createElement('div');
-    row.className = 'flex items-center justify-between p-2 rounded bg-ide-card border border-ide-border text-xs font-mono text-emerald-400';
+    row.className = 'flex items-center justify-between p-2 rounded bg-ide-card border border-ide-border text-xs font-mono text-ide-success';
     row.innerHTML = `
             <div class="flex items-center gap-2">
               <span class="text-[10px] text-ide-muted">${idx + 1}</span>
@@ -147,7 +147,7 @@ function renderWorkspaceUI() {
           `;
     const rmBtn = document.createElement('button');
     rmBtn.type = 'button';
-    rmBtn.className = 'text-rose-400 hover:text-rose-300 text-sm px-1.5';
+    rmBtn.className = 'text-ide-danger hover:text-ide-danger text-sm px-1.5';
     rmBtn.textContent = '✕';
     rmBtn.addEventListener('click', () => removeBlockFromWorkspace(idx));
     row.appendChild(rmBtn);

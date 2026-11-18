@@ -42,10 +42,10 @@ function setParsonsFilter(lvl) {
     const b = document.getElementById(`flt-par-${l}`);
     if (b) {
       if (l === lvl) {
-        b.className = 'px-2.5 py-1 rounded bg-ide-surface text-white font-bold';
+        b.className = 'px-2.5 py-1 rounded bg-ide-surface text-ide-heading font-bold';
       } else {
         const col =
-          l === 'easy' ? 'text-emerald-400' : l === 'medium' ? 'text-amber-400' : l === 'hard' ? 'text-rose-400' : 'text-slate-400';
+          l === 'easy' ? 'text-ide-success' : l === 'medium' ? 'text-ide-warning' : l === 'hard' ? 'text-ide-danger' : 'text-ide-muted';
         b.className = `px-2.5 py-1 rounded ${col} hover:bg-ide-surface`;
       }
     }
@@ -116,8 +116,8 @@ function renderParsonsUI() {
     parsonsBank.forEach((item, idx) => {
       const div = document.createElement('div');
       div.className =
-        'p-2.5 rounded-lg bg-ide-card hover:bg-ide-card/80 border border-ide-border cursor-pointer text-xs font-mono text-amber-300 flex items-center justify-between transition-all';
-      div.innerHTML = `<span>${escapeHtml(item.text)}</span> <span class="text-xs text-ide-accent">➡</span>`;
+        'p-2.5 rounded-lg bg-ide-card hover:bg-ide-card/80 border border-ide-border cursor-pointer text-xs font-mono text-ide-warning flex items-center justify-between transition-all';
+      div.innerHTML = `<span>${escapeHtml(item.text)}</span> <span class="text-xs text-ide-link">➡</span>`;
       div.addEventListener('click', () => {
         parsonsTarget.push({ ...item, indent: 0 });
         parsonsBank.splice(idx, 1);
@@ -144,7 +144,7 @@ function renderParsonsUI() {
   parsonsTarget.forEach((item, idx) => {
     const div = document.createElement('div');
     const indentPx = (item.indent || 0) * 24;
-    div.className = 'p-2 rounded-lg bg-ide-surface border border-ide-border text-xs font-mono text-emerald-300 flex items-center justify-between transition-all';
+    div.className = 'p-2 rounded-lg bg-ide-surface border border-ide-border text-xs font-mono text-ide-success flex items-center justify-between transition-all';
     div.style.marginLeft = `${indentPx}px`;
 
     const left = document.createElement('div');
@@ -163,7 +163,7 @@ function renderParsonsUI() {
     right.appendChild(makeIndentBtn('+', 'Más sangría', () => changeParsonsIndent(idx, 1)));
     const rmBtn = document.createElement('button');
     rmBtn.type = 'button';
-    rmBtn.className = 'text-rose-400 hover:text-rose-300 px-1 text-sm';
+    rmBtn.className = 'text-ide-danger hover:text-ide-danger px-1 text-sm';
     rmBtn.textContent = '✕';
     rmBtn.addEventListener('click', () => removeParsonsFromTarget(idx));
     right.appendChild(rmBtn);
@@ -196,7 +196,7 @@ function checkParsonsSolution() {
   if (!act) return;
 
   if (parsonsTarget.length !== act.correctLines.length) {
-    fb.className = 'p-3 rounded-xl border border-rose-500/30 bg-rose-500/10 text-xs font-mono text-rose-300';
+    fb.className = 'p-3 rounded-xl border border-ide-danger/30 bg-ide-danger/10 text-xs font-mono text-ide-danger';
     fb.textContent = isEs()
       ? `❌ El algoritmo debe tener exactamente ${act.correctLines.length} líneas. Asegúrate de descartar las líneas trampa.`
       : `❌ L'algorisme ha de tindre exactament ${act.correctLines.length} línies. Assegura't de descartar les línies trampa.`;
@@ -228,13 +228,13 @@ function checkParsonsSolution() {
   }
 
   if (ok) {
-    fb.className = 'p-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-xs font-mono text-emerald-300';
+    fb.className = 'p-3 rounded-xl border border-ide-success/30 bg-ide-success/10 text-xs font-mono text-ide-success';
     fb.textContent = isEs()
       ? '✔ ¡Puzzle Parsons resuelto correctamente! Código compilable e indentado.'
       : '✔ Puzzle Parsons resolt correctament! Codi compilable i indentat.';
     markCompleted('parsons', act.id); // persiste + despacha 'progresschange' → repuebla el select con ✔
   } else {
-    fb.className = 'p-3 rounded-xl border border-rose-500/30 bg-rose-500/10 text-xs font-mono text-rose-300';
+    fb.className = 'p-3 rounded-xl border border-ide-danger/30 bg-ide-danger/10 text-xs font-mono text-ide-danger';
     fb.textContent = `❌ ${errReason}`;
   }
 }

@@ -1,20 +1,84 @@
 /* ==========================================================================
-   theme.css — estilos base del monolito original
-   (extraídos literalmente del bloque <style> de legacy/AplicacionJAVA-original.html)
-   + animación fadeIn usada por el modal (#solution-modal), que el original
-   invocaba sin definirla.
+   theme.css — variables de tema + tipografías + foco + animaciones
+   - Tema OSCURO por defecto en :root; tema CLARO en [data-theme="light"].
+   - Los colores son TRIPLETS RGB (p. ej. "24 24 37") para que Tailwind
+     los consuma como rgb(var(--ide-bg) / <alpha-value>) y funcionen los
+     modificadores de opacidad (/60, /10…).
+   - Cambiar de tema = cambiar <html data-theme>; no hace falta regenerar
+     nada de Tailwind.
    ========================================================================== */
+
+:root {
+  color-scheme: dark;
+
+  /* --- Paleta oscura (Catppuccin Mocha) --- */
+  --ide-bg: 24 24 37;        /* #181825 */
+  --ide-surface: 30 30 46;   /* #1e1e2e */
+  --ide-card: 37 37 56;      /* #252538 */
+  --ide-border: 49 50 68;    /* #313244 */
+  --ide-accent: 137 180 250; /* #89b4fa — fondos/píldoras (siempre con texto oscuro) */
+  --ide-link: 137 180 250;   /* #89b4fa — texto enlazable / acentos de texto */
+  --ide-text: 205 214 244;   /* #cdd6f4 */
+  --ide-muted: 147 153 178;  /* #9399b2 */
+  --ide-heading: 255 255 255;/* #ffffff */
+  --ide-success: 166 227 161; /* #a6e3a1 */
+  --ide-warning: 249 226 175; /* #f9e2af */
+  --ide-danger: 243 139 168;  /* #f38ba8 */
+}
+
+[data-theme='light'] {
+  color-scheme: light;
+
+  /* --- Paleta clara (Catppuccin Latte) --- */
+  --ide-bg: 239 241 245;      /* #eff1f5 */
+  --ide-surface: 230 233 239; /* #e6e9ef */
+  --ide-card: 220 224 232;    /* #dce0e8 */
+  --ide-border: 172 176 190;  /* #acb0be */
+  --ide-accent: 137 180 250;  /* #89b4fa — píldoras con texto oscuro */
+  --ide-link: 28 95 208;      /* #1c5fd0 — enlaces legibles sobre claro */
+  --ide-text: 76 79 105;      /* #4c4f69 */
+  --ide-muted: 92 95 119;     /* #5c5f77 */
+  --ide-heading: 35 36 51;    /* #232433 */
+  --ide-success: 22 101 52;   /* #166534 */
+  --ide-warning: 146 64 14;   /* #92400e */
+  --ide-danger: 190 18 60;    /* #be123c */
+}
+
 body { font-family: 'Inter', sans-serif; }
 code, pre, .font-mono { font-family: 'Fira Code', monospace; }
-/* Scrollbars discretos */
+
+/* Scrollbars discretos (adaptables al tema) */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: #181825; }
-::-webkit-scrollbar-thumb { background: #313244; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #45475a; }
+::-webkit-scrollbar-track { background: rgb(var(--ide-bg)); }
+::-webkit-scrollbar-thumb { background: rgb(var(--ide-border)); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgb(var(--ide-muted)); }
+
+/* Selects nativos: opciones coherentes con el tema */
+select, select option {
+  background-color: rgb(var(--ide-card));
+  color: rgb(var(--ide-text));
+}
+
+/* Focus visible coherente en todo el app (teclado) */
+:focus-visible {
+  outline: 2px solid rgb(var(--ide-accent));
+  outline-offset: 2px;
+}
 
 /* Animación de aparición del modal (usada por la clase animate-fadeIn) */
 .animate-fadeIn { animation: fadeIn .15s ease-out; }
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
+}
+
+/* Transición suave al cambiar de panel (switchMode añade .panel-in) */
+.panel-in { animation: panelIn .18s ease-out; }
+@keyframes panelIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fadeIn, .panel-in { animation: none; }
 }

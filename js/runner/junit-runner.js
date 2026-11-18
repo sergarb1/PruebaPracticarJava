@@ -173,7 +173,7 @@ export async function runEditorJUnit(act, userCode, termEl) {
   const term = termEl || document.getElementById('junit-terminal');
   if (!act || !term) return;
 
-  term.innerHTML = `<div class="text-ide-accent font-semibold pb-1 border-b border-ide-border">&gt; ${escapeHtml(tf('junit_compiling'))}</div>`;
+  term.innerHTML = `<div class="text-ide-link font-semibold pb-1 border-b border-ide-border">&gt; ${escapeHtml(tf('junit_compiling'))}</div>`;
 
   // Sin motor (file:// o sin Worker): simulador legacy + banner de aviso.
   if (!isEngineSupported()) {
@@ -190,7 +190,7 @@ export async function runEditorJUnit(act, userCode, termEl) {
       // El legacy reescribe la terminal con su propia cabecera: el aviso se
       // añade DESPUÉS para que se quede visible.
       runLegacyEditorTests(act, userCode, term);
-      term.innerHTML += `<div class="text-amber-400">${escapeHtml(t('engine_timeout'))}</div>`;
+      term.innerHTML += `<div class="text-ide-warning">${escapeHtml(t('engine_timeout'))}</div>`;
       return;
     }
     // ENGINE_UNAVAILABLE (o cualquier otro fallo de carga/red): legacy.
@@ -204,12 +204,12 @@ export async function runEditorJUnit(act, userCode, termEl) {
   if (c.status === 'compile-error') {
     // El badge se queda como estaba: no tocamos #test-summary-badge.
     const label = isEs() ? 'Error de compilación' : 'Error de compilació';
-    term.innerHTML += `<div class="p-2 mt-2 rounded bg-rose-500/10 border border-rose-500/20 text-rose-300"><span class="font-bold">❌ ${escapeHtml(label)}</span>\n${escapeHtml(clipLines(c.detail, 15))}</div>`;
+    term.innerHTML += `<div class="p-2 mt-2 rounded bg-ide-danger/10 border border-ide-danger/20 text-ide-danger"><span class="font-bold">❌ ${escapeHtml(label)}</span>\n${escapeHtml(clipLines(c.detail, 15))}</div>`;
     return;
   }
 
   if (c.status === 'runtime-error') {
-    term.innerHTML += `<div class="p-2 mt-2 rounded bg-rose-500/10 border border-rose-500/20 text-rose-300">${escapeHtml(clipLines(c.detail, 15))}</div>`;
+    term.innerHTML += `<div class="p-2 mt-2 rounded bg-ide-danger/10 border border-ide-danger/20 text-ide-danger">${escapeHtml(clipLines(c.detail, 15))}</div>`;
     return;
   }
 
@@ -222,20 +222,20 @@ export async function runEditorJUnit(act, userCode, termEl) {
 
     if (r.status === 'PASS') {
       htmlResults += `
-            <div class="p-2 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-300">
+            <div class="p-2 rounded bg-ide-success/10 border border-ide-success/20 text-ide-success">
               <span class="font-bold">✔ TEST ${r.n} PASADO:</span> ${escapeHtml(tc.call)} == ${escapeHtml(JSON.stringify(tc.exp))}
             </div>
           `;
     } else if (r.status === 'FAIL') {
       htmlResults += `
-            <div class="p-2 rounded bg-rose-500/10 border border-rose-500/20 text-rose-300">
+            <div class="p-2 rounded bg-ide-danger/10 border border-ide-danger/20 text-ide-danger">
               <span class="font-bold">❌ TEST ${r.n} FALLADO:</span> ${escapeHtml(tc.call)}<br>
               <span class="text-[11px] text-ide-muted">Esperado: <strong>${escapeHtml(JSON.stringify(tc.exp))}</strong> | Obtenido: <strong>${escapeHtml(r.actual == null ? '' : r.actual)}</strong></span>
             </div>
           `;
     } else {
       htmlResults += `
-            <div class="p-2 rounded bg-rose-500/10 border border-rose-500/20 text-rose-300">
+            <div class="p-2 rounded bg-ide-danger/10 border border-ide-danger/20 text-ide-danger">
               <span class="font-bold">❌ TEST ${r.n} FALLADO:</span> ${escapeHtml(tc.call)}<br>
               <span class="text-[11px] text-ide-muted">Esperado: <strong>${escapeHtml(JSON.stringify(tc.exp))}</strong> | Obtenido: <strong>Excepción: ${escapeHtml(r.msg || '')}</strong></span>
             </div>
@@ -265,15 +265,15 @@ export async function runEditorJUnit(act, userCode, termEl) {
   if (badge) {
     badge.textContent = `${passedCount}/${total} ${isEs() ? 'pasados' : 'passats'}`;
     badge.className = passedCount === total
-      ? 'text-[11px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold'
-      : 'text-[11px] font-mono px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 font-bold';
+      ? 'text-[11px] font-mono px-2 py-0.5 rounded bg-ide-success/20 text-ide-success font-bold'
+      : 'text-[11px] font-mono px-2 py-0.5 rounded bg-ide-danger/20 text-ide-danger font-bold';
   }
 
   if (passedCount === total) {
     const finalMsg = isEs()
       ? '¡ENHORABUENA! Todos los casos de prueba han superado la verificación.'
       : '¡ENHORABUENA! Tots els casos de prova han superat la verificació.';
-    term.innerHTML += `<div class="text-emerald-400 font-bold pt-2 border-t border-ide-border">&gt; ${escapeHtml(finalMsg)}</div>`;
+    term.innerHTML += `<div class="text-ide-success font-bold pt-2 border-t border-ide-border">&gt; ${escapeHtml(finalMsg)}</div>`;
     markCompleted('editor', act.id);
   }
 }

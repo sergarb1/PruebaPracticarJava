@@ -15,9 +15,9 @@ import {
 } from './java-engine.js';
 
 /* Estilos de las cajas de feedback (mismos patrones que el monolito). */
-const FB_OK = 'p-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-xs font-mono text-emerald-300';
-const FB_ERR = 'p-3 rounded-xl border border-rose-500/30 bg-rose-500/10 text-xs font-mono text-rose-300';
-const FB_WARN = 'p-3 rounded-xl border border-amber-500/30 bg-amber-500/10 text-xs font-mono text-amber-300';
+const FB_OK = 'p-3 rounded-xl border border-ide-success/30 bg-ide-success/10 text-xs font-mono text-ide-success';
+const FB_ERR = 'p-3 rounded-xl border border-ide-danger/30 bg-ide-danger/10 text-xs font-mono text-ide-danger';
+const FB_WARN = 'p-3 rounded-xl border border-ide-warning/30 bg-ide-warning/10 text-xs font-mono text-ide-warning';
 
 /* Recorta un texto a un máximo de líneas. */
 function clipLines(text, maxLines) {

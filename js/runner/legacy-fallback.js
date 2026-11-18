@@ -91,7 +91,7 @@ export function runLegacyBlocks(act, workspaceItems, termEl) {
   const term = termEl || document.getElementById('blocks-terminal');
   if (!act || !term) return;
 
-  term.innerHTML = `<span class="text-ide-accent">&gt; [JVM] Compilando Main.java (${escapeHtml(act.funcName)})...</span>\n`;
+  term.innerHTML = `<span class="text-ide-link">&gt; [JVM] Compilando Main.java (${escapeHtml(act.funcName)})...</span>\n`;
 
   const items = Array.isArray(workspaceItems) ? workspaceItems : [];
   const outputLines = [];
@@ -106,16 +106,16 @@ export function runLegacyBlocks(act, workspaceItems, termEl) {
   const actual = outputLines.join('\n').trim();
   setTimeout(() => {
     if (!actual) {
-      term.innerHTML += `<span class="text-amber-400">&gt; Programa ejecutado sin salida estándar. Incluye una sentencia System.out.println(...).</span>\n`;
+      term.innerHTML += `<span class="text-ide-warning">&gt; Programa ejecutado sin salida estándar. Incluye una sentencia System.out.println(...).</span>\n`;
       return;
     }
 
-    term.innerHTML += `<span class="text-white">&gt; Salida:\n${escapeHtml(actual)}</span>\n\n`;
+    term.innerHTML += `<span class="text-ide-text">&gt; Salida:\n${escapeHtml(actual)}</span>\n\n`;
     if (actual === act.expected.trim()) {
-      term.innerHTML += `<span class="text-emerald-400 font-bold">&gt; ✔ ¡ACTIVIDAD COMPLETADA CON ÉXITO!</span>`;
+      term.innerHTML += `<span class="text-ide-success font-bold">&gt; ✔ ¡ACTIVIDAD COMPLETADA CON ÉXITO!</span>`;
       markCompleted('blocks', act.id);
     } else {
-      term.innerHTML += `<span class="text-rose-400">&gt; ❌ La salida obtenida no coincide con la esperada ('${escapeHtml(act.expected)}').</span>`;
+      term.innerHTML += `<span class="text-ide-danger">&gt; ❌ La salida obtenida no coincide con la esperada ('${escapeHtml(act.expected)}').</span>`;
     }
   }, 150);
 }
@@ -130,13 +130,13 @@ export function runLegacyEditorTests(act, userCode, termEl) {
   const code = String(userCode || '');
   if (!act || !term) return;
 
-  term.innerHTML = `<div class="text-ide-accent font-semibold pb-1 border-b border-ide-border">&gt; Ejecutando suite de pruebas JUnit para ${escapeHtml(act.funcName)}...</div>`;
+  term.innerHTML = `<div class="text-ide-link font-semibold pb-1 border-b border-ide-border">&gt; Ejecutando suite de pruebas JUnit para ${escapeHtml(act.funcName)}...</div>`;
 
   let parsed = null;
   try {
     parsed = extractMethodBodyAndParams(code, act.funcName);
   } catch (err) {
-    term.innerHTML += `<div class="p-2 mt-2 rounded bg-rose-500/10 border border-rose-500/20 text-rose-300">❌ Error de compilación sintáctica: ${escapeHtml(err.message)}</div>`;
+    term.innerHTML += `<div class="p-2 mt-2 rounded bg-ide-danger/10 border border-ide-danger/20 text-ide-danger">❌ Error de compilación sintáctica: ${escapeHtml(err.message)}</div>`;
     return;
   }
 
@@ -144,7 +144,7 @@ export function runLegacyEditorTests(act, userCode, termEl) {
   try {
     userFn = new Function(...parsed.paramNames, parsed.jsBody);
   } catch (compileErr) {
-    term.innerHTML += `<div class="p-2 mt-2 rounded bg-rose-500/10 border border-rose-500/20 text-rose-300">❌ Error al evaluar el código: ${escapeHtml(compileErr.message)}</div>`;
+    term.innerHTML += `<div class="p-2 mt-2 rounded bg-ide-danger/10 border border-ide-danger/20 text-ide-danger">❌ Error al evaluar el código: ${escapeHtml(compileErr.message)}</div>`;
     return;
   }
 
@@ -177,13 +177,13 @@ export function runLegacyEditorTests(act, userCode, termEl) {
 
     if (isPass) {
       htmlResults += `
-            <div class="p-2 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-300">
+            <div class="p-2 rounded bg-ide-success/10 border border-ide-success/20 text-ide-success">
               <span class="font-bold">✔ TEST ${idx + 1} PASADO:</span> ${escapeHtml(tc.call)} == ${escapeHtml(JSON.stringify(tc.exp))}
             </div>
           `;
     } else {
       htmlResults += `
-            <div class="p-2 rounded bg-rose-500/10 border border-rose-500/20 text-rose-300">
+            <div class="p-2 rounded bg-ide-danger/10 border border-ide-danger/20 text-ide-danger">
               <span class="font-bold">❌ TEST ${idx + 1} FALLADO:</span> ${escapeHtml(tc.call)}<br>
               <span class="text-[11px] text-ide-muted">Esperado: <strong>${escapeHtml(JSON.stringify(tc.exp))}</strong> | Obtenido: <strong>${errorMsg ? 'Excepción: ' + escapeHtml(errorMsg) : escapeHtml(JSON.stringify(actual))}</strong></span>
             </div>
@@ -197,12 +197,12 @@ export function runLegacyEditorTests(act, userCode, termEl) {
   if (badge) {
     badge.textContent = `${passedCount}/${act.tests.length} ${currentLang === 'es' ? 'pasados' : 'passats'}`;
     badge.className = passedCount === act.tests.length
-      ? 'text-[11px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold'
-      : 'text-[11px] font-mono px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 font-bold';
+      ? 'text-[11px] font-mono px-2 py-0.5 rounded bg-ide-success/20 text-ide-success font-bold'
+      : 'text-[11px] font-mono px-2 py-0.5 rounded bg-ide-danger/20 text-ide-danger font-bold';
   }
 
   if (passedCount === act.tests.length) {
-    term.innerHTML += `<div class="text-emerald-400 font-bold pt-2 border-t border-ide-border">&gt; ¡ENHORABUENA! Todos los casos de prueba han superado la verificación.</div>`;
+    term.innerHTML += `<div class="text-ide-success font-bold pt-2 border-t border-ide-border">&gt; ¡ENHORABUENA! Todos los casos de prueba han superado la verificación.</div>`;
     markCompleted('editor', act.id);
   }
 }

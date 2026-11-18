@@ -58,10 +58,10 @@ export function setEngineStatus(msg, kind = 'loading') {
 
   el.classList.remove('hidden');
   span.textContent = String(msg);
-  span.classList.remove('animate-pulse', 'text-amber-300', 'text-amber-400', 'text-rose-400');
-  if (kind === 'loading') span.classList.add('animate-pulse', 'text-amber-300');
-  else if (kind === 'fallback') span.classList.add('text-amber-400');
-  else if (kind === 'error') span.classList.add('text-rose-400');
+  span.classList.remove('animate-pulse', 'text-ide-warning', 'text-ide-danger');
+  if (kind === 'loading') span.classList.add('animate-pulse', 'text-ide-warning');
+  else if (kind === 'fallback') span.classList.add('text-ide-warning');
+  else if (kind === 'error') span.classList.add('text-ide-danger');
 }
 
 /* --------------------------------------------------------------------------

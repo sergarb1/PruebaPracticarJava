@@ -56,7 +56,7 @@ export async function runBlockProgram(act, workspaceItems, termEl) {
   const term = termEl || document.getElementById('blocks-terminal');
   if (!act || !term) return;
 
-  term.innerHTML = `<span class="text-ide-accent">${escapeHtml(t('blk_compiling'))}</span>\n`;
+  term.innerHTML = `<span class="text-ide-link">${escapeHtml(t('blk_compiling'))}</span>\n`;
 
   // Sin motor (file:// o sin Worker): simulador legacy + banner de aviso.
   if (!isEngineSupported()) {
@@ -74,7 +74,7 @@ export async function runBlockProgram(act, workspaceItems, termEl) {
       // El legacy reescribe la terminal con su propia cabecera: el aviso se
       // añade DESPUÉS para que se quede visible.
       runLegacyBlocks(act, workspaceItems, term);
-      term.innerHTML += `<span class="text-amber-400">${escapeHtml(t('engine_timeout'))}</span>\n`;
+      term.innerHTML += `<span class="text-ide-warning">${escapeHtml(t('engine_timeout'))}</span>\n`;
       return;
     }
     // ENGINE_UNAVAILABLE (o cualquier otro fallo de carga/red): legacy.
@@ -86,12 +86,12 @@ export async function runBlockProgram(act, workspaceItems, termEl) {
   const c = classifyResult(res);
 
   if (c.status === 'compile-error') {
-    term.innerHTML += `<div class="p-2 mt-2 rounded bg-rose-500/10 border border-rose-500/20 text-rose-300">${escapeHtml(clipLines(c.detail, 15))}</div>`;
+    term.innerHTML += `<div class="p-2 mt-2 rounded bg-ide-danger/10 border border-ide-danger/20 text-ide-danger">${escapeHtml(clipLines(c.detail, 15))}</div>`;
     return; // NO se marca como completada
   }
 
   if (c.status === 'runtime-error') {
-    term.innerHTML += `<div class="p-2 mt-2 rounded bg-rose-500/10 border border-rose-500/20 text-rose-300">${escapeHtml(clipLines(c.detail, 15))}</div>`;
+    term.innerHTML += `<div class="p-2 mt-2 rounded bg-ide-danger/10 border border-ide-danger/20 text-ide-danger">${escapeHtml(clipLines(c.detail, 15))}</div>`;
     return;
   }
 
@@ -100,16 +100,16 @@ export async function runBlockProgram(act, workspaceItems, termEl) {
   const expected = String(act.expected == null ? '' : act.expected);
 
   if (stdout.trim() === '') {
-    term.innerHTML += `<span class="text-amber-400">${escapeHtml(t('blk_no_output'))}</span>\n`;
+    term.innerHTML += `<span class="text-ide-warning">${escapeHtml(t('blk_no_output'))}</span>\n`;
     return;
   }
 
-  term.innerHTML += `<span class="text-white">&gt; Salida:\n${escapeHtml(stdout)}</span>\n\n`;
+  term.innerHTML += `<span class="text-ide-text">&gt; Salida:\n${escapeHtml(stdout)}</span>\n\n`;
 
   if (stdout.trim() === expected.trim()) {
-    term.innerHTML += `<span class="text-emerald-400 font-bold">${escapeHtml(t('blk_success'))}</span>`;
+    term.innerHTML += `<span class="text-ide-success font-bold">${escapeHtml(t('blk_success'))}</span>`;
     markCompleted('blocks', act.id);
   } else {
-    term.innerHTML += `<span class="text-rose-400">${escapeHtml(tf('blk_fail', { expected: expected }))}</span>`;
+    term.innerHTML += `<span class="text-ide-danger">${escapeHtml(tf('blk_fail', { expected: expected }))}</span>`;
   }
 }

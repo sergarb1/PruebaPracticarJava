@@ -5,6 +5,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>JavaLearn DAM - Simulador de Programación Java</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23181825'/%3E%3Ctext x='16' y='23' font-family='Fira Code,monospace' font-size='19' font-weight='700' fill='%23f9e2af' text-anchor='middle'%3EJ%3C/text%3E%3C/svg%3E">
+  <!-- Tema: aplica antes del primer pintado (evita FOUC) -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('javalearn_dam_theme');
+        if (t !== 'light' && t !== 'dark') {
+          t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) ? 'light' : 'dark';
+        }
+        document.documentElement.setAttribute('data-theme', t);
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      }
+    })();
+  </script>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -14,16 +28,18 @@
         extend: {
           colors: {
             ide: {
-              bg: '#181825',
-              surface: '#1e1e2e',
-              card: '#252538',
-              border: '#313244',
-              accent: '#89b4fa',
-              success: '#a6e3a1',
-              warning: '#f9e2af',
-              danger: '#f38ba8',
-              text: '#cdd6f4',
-              muted: '#9399b2'
+              bg: 'rgb(var(--ide-bg) / <alpha-value>)',
+              surface: 'rgb(var(--ide-surface) / <alpha-value>)',
+              card: 'rgb(var(--ide-card) / <alpha-value>)',
+              border: 'rgb(var(--ide-border) / <alpha-value>)',
+              accent: 'rgb(var(--ide-accent) / <alpha-value>)',
+              link: 'rgb(var(--ide-link) / <alpha-value>)',
+              success: 'rgb(var(--ide-success) / <alpha-value>)',
+              warning: 'rgb(var(--ide-warning) / <alpha-value>)',
+              danger: 'rgb(var(--ide-danger) / <alpha-value>)',
+              text: 'rgb(var(--ide-text) / <alpha-value>)',
+              muted: 'rgb(var(--ide-muted) / <alpha-value>)',
+              heading: 'rgb(var(--ide-heading) / <alpha-value>)'
             }
           }
         }
@@ -47,8 +63,8 @@
         </div>
         <div>
           <div class="flex items-center gap-2">
-            <h1 class="font-bold text-lg text-white tracking-tight">JavaLearn <span class="text-amber-400 text-xs px-2 py-0.5 rounded bg-amber-400/10 border border-amber-400/30">DAM 1º</span></h1>
-            <span class="text-[11px] font-medium text-amber-300 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full" id="lbl-author-badge" data-i18n="author_badge">Autora: Mara Vañó</span>
+            <h1 class="font-bold text-lg text-ide-heading tracking-tight">JavaLearn <span class="text-ide-warning text-xs px-2 py-0.5 rounded bg-ide-warning/10 border border-ide-warning/30">DAM 1º</span></h1>
+            <span class="text-[11px] font-medium text-ide-warning bg-ide-warning/10 border border-ide-warning/20 px-2 py-0.5 rounded-full" id="lbl-author-badge" data-i18n="author_badge">Autora: Mara Vañó</span>
           </div>
           <p id="lbl-subtitle" class="text-xs text-ide-muted" data-i18n="subtitle">Plataforma interactiva de aprendizaje de Java (450 Retos)</p>
         </div>
@@ -56,30 +72,36 @@
 
       <!-- Selector de Modo -->
       <div class="flex bg-ide-card p-1 rounded-xl border border-ide-border text-xs font-semibold gap-1">
-        <button id="btn-mode-blocks" class="px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 bg-ide-accent text-slate-900 shadow font-bold">
+        <button id="btn-mode-home" class="px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 bg-ide-accent text-slate-900 shadow font-bold">
+          🏠 <span id="lbl-nav-home" data-i18n="nav_home">Inicio</span>
+        </button>
+        <button id="btn-mode-blocks" class="px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 text-ide-muted hover:text-ide-heading">
           🧩 <span id="lbl-nav-blocks" data-i18n="nav_blocks">1. Bloques</span>
         </button>
-        <button id="btn-mode-parsons" class="px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 text-ide-muted hover:text-white">
+        <button id="btn-mode-parsons" class="px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 text-ide-muted hover:text-ide-heading">
           📐 <span id="lbl-nav-parsons" data-i18n="nav_parsons">2. Parsons</span>
         </button>
-        <button id="btn-mode-editor" class="px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 text-ide-muted hover:text-white">
+        <button id="btn-mode-editor" class="px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 text-ide-muted hover:text-ide-heading">
           💻 <span id="lbl-nav-editor" data-i18n="nav_editor">3. Micro-Editor</span>
         </button>
       </div>
 
-      <!-- Idioma y Barra de Progreso Global -->
+      <!-- Idioma, Tema y Barra de Progreso Global -->
       <div class="flex items-center gap-3">
         <!-- Selector Bilingüe ES / VA -->
         <div class="flex items-center bg-ide-card rounded-lg border border-ide-border p-0.5 text-xs font-bold">
           <button id="btn-lang-es" class="px-2.5 py-1 rounded bg-amber-500 text-slate-900 shadow">ES</button>
-          <button id="btn-lang-va" class="px-2.5 py-1 rounded text-ide-muted hover:text-white">VA</button>
+          <button id="btn-lang-va" class="px-2.5 py-1 rounded text-ide-muted hover:text-ide-heading">VA</button>
         </div>
+
+        <!-- Interruptor de tema claro/oscuro -->
+        <button id="btn-theme" class="px-2.5 py-1.5 rounded-lg bg-ide-card border border-ide-border text-sm transition-colors hover:bg-ide-border" aria-label="Cambiar a tema claro">☀️</button>
 
         <!-- Progreso global -->
         <div class="hidden sm:flex flex-col items-end">
           <span class="text-xs text-ide-muted flex items-center gap-1">
             <span id="lbl-progress-title" data-i18n="progress_title">Progreso DAM:</span> 
-            <strong id="stat-total" class="text-amber-400">0/450</strong>
+            <strong id="stat-total" class="text-ide-warning">0/450</strong>
           </span>
           <div class="w-28 h-2 bg-ide-card rounded-full overflow-hidden border border-ide-border mt-1">
             <div id="stat-bar" class="h-full bg-gradient-to-r from-amber-400 to-ide-success transition-all duration-300" style="width: 0%"></div>
@@ -93,9 +115,99 @@
   <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 flex-1 w-full">
 
     <!-- Banner de estado del motor Java (lo gestiona setEngineStatus) -->
-    <div id="engine-status" class="hidden mb-4 px-4 py-2.5 rounded-xl border border-amber-500/30 bg-amber-500/10 text-xs font-medium items-center gap-2">
-      <span id="engine-status-text" class="text-amber-300"></span>
+    <div id="engine-status" class="hidden mb-4 px-4 py-2.5 rounded-xl border border-ide-warning/30 bg-ide-warning/10 text-xs font-medium items-center gap-2">
+      <span id="engine-status-text" class="text-ide-warning"></span>
     </div>
+
+    <!-- ========================================================= -->
+    <!-- PANEL HOME: LANDING DE BIENVENIDA                          -->
+    <!-- ========================================================= -->
+    <section id="panel-home" class="space-y-6 hidden">
+      <!-- Hero -->
+      <div class="relative overflow-hidden rounded-2xl border border-ide-border bg-gradient-to-br from-ide-surface via-ide-card to-ide-surface p-6 sm:p-10 text-center">
+        <span class="inline-block text-[11px] font-bold uppercase tracking-widest text-ide-link bg-ide-link/10 border border-ide-link/30 px-3 py-1 rounded-full mb-4" data-i18n="home_kicker">Plataforma interactiva · 450 retos · sin backend</span>
+        <h2 class="text-2xl sm:text-4xl font-extrabold text-ide-heading tracking-tight mb-3" data-i18n="home_title">Aprende Java practicando, de verdad</h2>
+        <p class="text-sm sm:text-base text-ide-muted max-w-2xl mx-auto mb-6" data-i18n="home_sub">Tres modos de práctica, compilación real en tu navegador y progreso guardado. Elige por dónde empezar.</p>
+        <div class="flex flex-wrap items-center justify-center gap-3">
+          <button data-goto-mode="blocks" class="text-sm px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-900 font-bold shadow-lg transition-all active:scale-95">
+            🚀 <span data-i18n="home_cta_start">Empezar con Bloques</span>
+          </button>
+          <button data-goto-scroll="home-modes" class="text-sm px-6 py-2.5 rounded-xl bg-ide-card border border-ide-border text-ide-text font-semibold hover:bg-ide-border transition-colors">
+            <span data-i18n="home_cta_modes">Ver los 3 modos</span>
+          </button>
+          <button data-goto-scroll="home-engine" class="text-sm px-6 py-2.5 rounded-xl bg-ide-card border border-ide-border text-ide-text font-semibold hover:bg-ide-border transition-colors">
+            ⚙️ <span data-i18n="home_cta_engine">Cómo funciona el motor</span>
+          </button>
+        </div>
+        <div class="flex flex-wrap items-center justify-center gap-6 mt-8 pt-6 border-t border-ide-border text-xs text-ide-muted">
+          <span><strong class="text-ide-heading text-base">450</strong> <span data-i18n="home_stat_retos">retos</span></span>
+          <span><strong class="text-ide-heading text-base">3</strong> <span data-i18n="home_stat_levels">niveles</span></span>
+          <span><strong class="text-ide-heading text-base">ES / VA</strong> <span data-i18n="home_stat_lang">idiomas</span></span>
+        </div>
+      </div>
+
+      <!-- Los 3 modos -->
+      <div id="home-modes">
+        <h3 class="text-sm font-bold uppercase tracking-widest text-ide-muted mb-3" data-i18n="home_modes_title">Los 3 modos de práctica</h3>
+        <div class="grid md:grid-cols-3 gap-4">
+          <!-- Bloques -->
+          <div id="home-card-blocks" class="bg-ide-surface border border-ide-border rounded-2xl p-5 flex flex-col hover:border-ide-link/50 transition-colors">
+            <span class="text-3xl mb-2">🧩</span>
+            <h4 class="font-bold text-ide-heading mb-1" data-i18n="home_blocks_title">Bloques</h4>
+            <p class="text-sm text-ide-muted flex-1" data-i18n="home_blocks_desc">Haz clic en bloques de código para ensamblar un programa Java completo y ejecutarlo. Ideal para empezar.</p>
+            <span class="text-[11px] font-mono text-ide-link mt-2" data-i18n="home_blocks_meta">150 retos · clic · salida esperada visible</span>
+            <button data-goto-mode="blocks" class="mt-4 text-xs font-bold px-4 py-2 rounded-lg bg-ide-accent text-slate-900 hover:brightness-110 transition-all active:scale-95 self-start">
+              <span data-i18n="home_practice_btn">Practicar →</span>
+            </button>
+          </div>
+          <!-- Parsons -->
+          <div id="home-card-parsons" class="bg-ide-surface border border-ide-border rounded-2xl p-5 flex flex-col hover:border-ide-link/50 transition-colors">
+            <span class="text-3xl mb-2">📐</span>
+            <h4 class="font-bold text-ide-heading mb-1" data-i18n="home_parsons_title">Parsons</h4>
+            <p class="text-sm text-ide-muted flex-1" data-i18n="home_parsons_desc">Reordena y sangra líneas de código —incluidas trampas— hasta reconstruir el algoritmo. Compílalo para verificar.</p>
+            <span class="text-[11px] font-mono text-ide-link mt-2" data-i18n="home_parsons_meta">150 retos · orden + indentación · compilador real</span>
+            <button data-goto-mode="parsons" class="mt-4 text-xs font-bold px-4 py-2 rounded-lg bg-ide-accent text-slate-900 hover:brightness-110 transition-all active:scale-95 self-start">
+              <span data-i18n="home_practice_btn">Practicar →</span>
+            </button>
+          </div>
+          <!-- Editor -->
+          <div id="home-card-editor" class="bg-ide-surface border border-ide-border rounded-2xl p-5 flex flex-col hover:border-ide-link/50 transition-colors">
+            <span class="text-3xl mb-2">💻</span>
+            <h4 class="font-bold text-ide-heading mb-1" data-i18n="home_editor_title">Micro-Editor</h4>
+            <p class="text-sm text-ide-muted flex-1" data-i18n="home_editor_desc">Escribe Java a mano desde una plantilla y supera la batería de tests JUnit reales.</p>
+            <span class="text-[11px] font-mono text-ide-link mt-2" data-i18n="home_editor_meta">150 retos · tests JUnit · solución oficial</span>
+            <button data-goto-mode="editor" class="mt-4 text-xs font-bold px-4 py-2 rounded-lg bg-ide-accent text-slate-900 hover:brightness-110 transition-all active:scale-95 self-start">
+              <span data-i18n="home_practice_btn">Practicar →</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Motor Java real -->
+      <div id="home-engine" class="bg-ide-surface border border-ide-border rounded-2xl p-5 sm:p-6">
+        <h3 class="font-bold text-ide-heading mb-2" data-i18n="home_engine_title">⚙️ El motor Java real</h3>
+        <p class="text-sm text-ide-muted mb-3" data-i18n="home_engine_p1">Tu código se compila y ejecuta de verdad dentro del navegador: no es un simulador.</p>
+        <ul class="text-sm text-ide-text space-y-1.5 list-disc list-inside">
+          <li data-i18n="home_engine_li1">javac + TeaVM compilados a WebAssembly (@live-codes/java-wasm).</li>
+          <li data-i18n="home_engine_li2">~7,7 MB la primera vez; después queda cacheado con un Service Worker.</li>
+          <li data-i18n="home_engine_li3">Sin conexión o con file:// arranca el modo simulador de respaldo con aviso.</li>
+          <li data-i18n="home_engine_li4">Timeout de 20 s por ejecución: si hay un bucle infinito, el motor se reinicia.</li>
+        </ul>
+        <span class="inline-block mt-3 text-[11px] font-mono px-2 py-1 rounded bg-ide-bg border border-ide-border text-ide-link">@live-codes/java-wasm</span>
+      </div>
+
+      <!-- Cómo practicar -->
+      <div id="home-howto" class="bg-ide-surface border border-ide-border rounded-2xl p-5 sm:p-6">
+        <h3 class="font-bold text-ide-heading mb-2" data-i18n="home_howto_title">🎯 Cómo practicar</h3>
+        <ol class="text-sm text-ide-text space-y-1.5 list-decimal list-inside">
+          <li data-i18n="home_howto_li1">Elige un nivel con los filtros: Fácil, Medio o Avanzado (50 de cada uno).</li>
+          <li data-i18n="home_howto_li2">Lee el enunciado y la salida esperada; ejecuta o valida cuando estés listo.</li>
+          <li data-i18n="home_howto_li3">¿Atascado? Usa «Ver Solución / Comparar» o la solución oficial de Parsons.</li>
+          <li data-i18n="home_howto_li4">Tu progreso se guarda solo (hasta 450) y lo ves en la barra superior.</li>
+        </ol>
+        <p class="text-xs text-ide-muted mt-3 pt-3 border-t border-ide-border" data-i18n="home_howto_note">La plataforma está en valenciano y castellano: cámbialo con ES / VA.</p>
+      </div>
+    </section>
 
     <!-- ========================================================= -->
     <!-- BLOQUE 1: BLOQUES VISUALES JAVA                           -->
@@ -104,19 +216,20 @@
       <!-- Barra superior de Actividades y Filtros -->
       <div class="bg-ide-surface border border-ide-border rounded-xl p-4 flex flex-wrap items-center justify-between gap-4">
         <div class="flex items-center gap-3 flex-1 min-w-[280px]">
-          <span class="text-sm font-semibold text-white whitespace-nowrap" id="lbl-blk-select" data-i18n="blk_select">Actividad:</span>
-          <select id="select-block-act" class="bg-ide-card border border-ide-border text-white text-sm rounded-lg px-3 py-2 flex-1 outline-none focus:border-ide-accent">
+          <span class="text-sm font-semibold text-ide-heading whitespace-nowrap" id="lbl-blk-select" data-i18n="blk_select">Actividad:</span>
+          <select id="select-block-act" class="bg-ide-card border border-ide-border text-ide-text text-sm rounded-lg px-3 py-2 flex-1 min-w-0 outline-none focus:border-ide-link">
             <!-- Se llena con JS -->
           </select>
+          <button class="btn-howto text-xs px-3 py-2 rounded-lg bg-ide-card border border-ide-border text-ide-muted hover:text-ide-heading transition-colors whitespace-nowrap" data-howto="home-howto" data-i18n="howto">❓ Cómo practicar</button>
         </div>
 
         <!-- Filtros por nivel -->
         <div class="flex items-center gap-1.5 bg-ide-card p-1 rounded-lg border border-ide-border text-xs font-medium">
           <span class="px-2 text-ide-muted text-[11px]" id="lbl-flt-blk" data-i18n="flt_level">Nivel:</span>
-          <button id="flt-blk-all" data-i18n="btn_all" class="px-2.5 py-1 rounded bg-ide-surface text-white font-bold">Todas (150)</button>
-          <button id="flt-blk-easy" data-i18n="btn_easy" class="px-2.5 py-1 rounded text-emerald-400 hover:bg-ide-surface">Fácil (50)</button>
-          <button id="flt-blk-medium" data-i18n="btn_medium" class="px-2.5 py-1 rounded text-amber-400 hover:bg-ide-surface">Medio (50)</button>
-          <button id="flt-blk-hard" data-i18n="btn_hard" class="px-2.5 py-1 rounded text-rose-400 hover:bg-ide-surface">Avanzado (50)</button>
+          <button id="flt-blk-all" data-i18n="btn_all" class="px-2.5 py-1 rounded bg-ide-surface text-ide-heading font-bold">Todas (150)</button>
+          <button id="flt-blk-easy" data-i18n="btn_easy" class="px-2.5 py-1 rounded text-ide-success hover:bg-ide-surface">Fácil (50)</button>
+          <button id="flt-blk-medium" data-i18n="btn_medium" class="px-2.5 py-1 rounded text-ide-warning hover:bg-ide-surface">Medio (50)</button>
+          <button id="flt-blk-hard" data-i18n="btn_hard" class="px-2.5 py-1 rounded text-ide-danger hover:bg-ide-surface">Avanzado (50)</button>
         </div>
       </div>
 
@@ -124,8 +237,8 @@
       <div class="bg-gradient-to-r from-ide-surface to-ide-card border border-ide-border rounded-xl p-4 flex items-start justify-between gap-4">
         <div>
           <div class="flex items-center gap-2 mb-1">
-            <span id="blk-level-badge" class="text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">FÁCIL</span>
-            <h2 id="blk-act-title" class="text-base font-bold text-white">1. Declaración e inicialización de variables</h2>
+            <span id="blk-level-badge" class="text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider bg-ide-success/10 text-ide-success border border-ide-success/20">FÁCIL</span>
+            <h2 id="blk-act-title" class="text-base font-bold text-ide-heading">1. Declaración e inicialización de variables</h2>
           </div>
           <p id="blk-act-desc" class="text-sm text-ide-muted">Ensambla los bloques para declarar una variable entera 'edad' con valor 18 y mostrar su valor por consola.</p>
         </div>
@@ -140,7 +253,7 @@
         <!-- Paleta de Bloques Disponibles -->
         <div class="lg:col-span-5 bg-ide-surface border border-ide-border rounded-xl p-4 flex flex-col">
           <div class="flex items-center justify-between pb-3 border-b border-ide-border mb-3">
-            <h3 class="font-bold text-sm text-white flex items-center gap-2">
+            <h3 class="font-bold text-sm text-ide-heading flex items-center gap-2">
               <span>📦</span> <span id="lbl-palette" data-i18n="palette">Paleta de Bloques Java</span>
             </h3>
             <span class="text-xs text-ide-muted" id="lbl-click-add" data-i18n="click_add">Haz clic para añadir</span>
@@ -156,12 +269,12 @@
           <!-- Lienzo de ensamblado -->
           <div class="bg-ide-surface border border-ide-border rounded-xl p-4">
             <div class="flex items-center justify-between pb-3 border-b border-ide-border mb-3">
-              <h3 class="font-bold text-sm text-white flex items-center gap-2">
+              <h3 class="font-bold text-sm text-ide-heading flex items-center gap-2">
                 <span>🧩</span> <span id="lbl-workspace" data-i18n="workspace">Programa Ensamblado</span>
                 <span id="blk-counter" class="text-xs font-normal text-ide-muted">(0 bloques)</span>
               </h3>
               <div class="flex gap-2">
-                <button id="btn-ws-clear" class="text-xs px-2.5 py-1 rounded bg-ide-card hover:bg-rose-500/20 text-rose-400 border border-ide-border transition-colors">
+                <button id="btn-ws-clear" class="text-xs px-2.5 py-1 rounded bg-ide-card hover:bg-ide-danger/20 text-ide-danger border border-ide-border transition-colors">
                   <span data-i18n="clear_blk">Vaciar</span>
                 </button>
               </div>
@@ -183,9 +296,9 @@
                 <span class="text-xs font-mono text-ide-muted flex items-center gap-1.5">
                   <span class="w-2 h-2 rounded-full bg-amber-400"></span> Main.java
                 </span>
-                <button id="btn-copy-code" data-i18n="copy_code" class="text-[11px] text-ide-accent hover:underline">Copiar</button>
+                <button id="btn-copy-code" data-i18n="copy_code" class="text-[11px] text-ide-link hover:underline">Copiar</button>
               </div>
-              <pre id="blocks-java-code" class="text-xs text-emerald-400 font-mono bg-ide-bg p-3 rounded-lg overflow-x-auto flex-1 h-[140px]">public class Main {
+              <pre id="blocks-java-code" class="text-xs text-ide-success font-mono bg-ide-bg p-3 rounded-lg overflow-x-auto flex-1 h-[140px]">public class Main {
     public static void main(String[] args) {
         // Añade bloques para generar código...
     }
@@ -202,7 +315,7 @@
                   ▶ <span data-i18n="run_blk">Compilar y Ejecutar</span>
                 </button>
               </div>
-              <div id="blocks-terminal" class="text-xs text-slate-300 font-mono bg-ide-bg p-3 rounded-lg flex-1 h-[140px] overflow-y-auto whitespace-pre-wrap">
+              <div id="blocks-terminal" class="text-xs text-ide-text font-mono bg-ide-bg p-3 rounded-lg flex-1 h-[140px] overflow-y-auto whitespace-pre-wrap">
 &gt; Esperando ejecución...
               </div>
             </div>
@@ -218,18 +331,19 @@
       <!-- Selector y Filtros -->
       <div class="bg-ide-surface border border-ide-border rounded-xl p-4 flex flex-wrap items-center justify-between gap-4">
         <div class="flex items-center gap-3 flex-1 min-w-[280px]">
-          <span class="text-sm font-semibold text-white whitespace-nowrap" id="lbl-par-select" data-i18n="par_select">Reto Parsons:</span>
-          <select id="select-parsons-act" class="bg-ide-card border border-ide-border text-white text-sm rounded-lg px-3 py-2 flex-1 outline-none focus:border-ide-accent">
+          <span class="text-sm font-semibold text-ide-heading whitespace-nowrap" id="lbl-par-select" data-i18n="par_select">Reto Parsons:</span>
+          <select id="select-parsons-act" class="bg-ide-card border border-ide-border text-ide-text text-sm rounded-lg px-3 py-2 flex-1 min-w-0 outline-none focus:border-ide-link">
             <!-- Dinámico -->
           </select>
+          <button class="btn-howto text-xs px-3 py-2 rounded-lg bg-ide-card border border-ide-border text-ide-muted hover:text-ide-heading transition-colors whitespace-nowrap" data-howto="home-howto" data-i18n="howto">❓ Cómo practicar</button>
         </div>
 
         <div class="flex items-center gap-1.5 bg-ide-card p-1 rounded-lg border border-ide-border text-xs font-medium">
           <span class="px-2 text-ide-muted text-[11px]" id="lbl-flt-par" data-i18n="flt_level">Nivel:</span>
-          <button id="flt-par-all" data-i18n="btn_all" class="px-2.5 py-1 rounded bg-ide-surface text-white font-bold">Todas (150)</button>
-          <button id="flt-par-easy" data-i18n="btn_easy" class="px-2.5 py-1 rounded text-emerald-400 hover:bg-ide-surface">Fácil (50)</button>
-          <button id="flt-par-medium" data-i18n="btn_medium" class="px-2.5 py-1 rounded text-amber-400 hover:bg-ide-surface">Medio (50)</button>
-          <button id="flt-par-hard" data-i18n="btn_hard" class="px-2.5 py-1 rounded text-rose-400 hover:bg-ide-surface">Avanzado (50)</button>
+          <button id="flt-par-all" data-i18n="btn_all" class="px-2.5 py-1 rounded bg-ide-surface text-ide-heading font-bold">Todas (150)</button>
+          <button id="flt-par-easy" data-i18n="btn_easy" class="px-2.5 py-1 rounded text-ide-success hover:bg-ide-surface">Fácil (50)</button>
+          <button id="flt-par-medium" data-i18n="btn_medium" class="px-2.5 py-1 rounded text-ide-warning hover:bg-ide-surface">Medio (50)</button>
+          <button id="flt-par-hard" data-i18n="btn_hard" class="px-2.5 py-1 rounded text-ide-danger hover:bg-ide-surface">Avanzado (50)</button>
         </div>
       </div>
 
@@ -237,19 +351,19 @@
       <div class="bg-gradient-to-r from-ide-surface to-ide-card border border-ide-border rounded-xl p-4 flex items-start justify-between gap-4">
         <div>
           <div class="flex items-center gap-2 mb-1">
-            <span id="par-level-badge" class="text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">FÁCIL</span>
-            <h2 id="par-act-title" class="text-base font-bold text-white">1. Factorial de un número</h2>
+            <span id="par-level-badge" class="text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider bg-ide-success/10 text-ide-success border border-ide-success/20">FÁCIL</span>
+            <h2 id="par-act-title" class="text-base font-bold text-ide-heading">1. Factorial de un número</h2>
           </div>
           <p id="par-act-desc" class="text-sm text-ide-muted">Ordena las líneas de código e indenta correctamente con tabulación. ¡Cuidado con las líneas trampa que no pertenecen al algoritmo!</p>
         </div>
         <div class="flex gap-2">
-          <button id="btn-par-reset" class="text-xs px-3 py-1.5 rounded-lg bg-ide-card border border-ide-border text-ide-muted hover:text-white transition-colors">
+          <button id="btn-par-reset" class="text-xs px-3 py-1.5 rounded-lg bg-ide-card border border-ide-border text-ide-muted hover:text-ide-heading transition-colors">
             ↺ <span data-i18n="reset_par">Reiniciar</span>
           </button>
           <button id="btn-par-check" class="text-xs px-4 py-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-amber-400 text-slate-900 font-bold hover:brightness-110 shadow transition-all active:scale-95">
             ✔ <span data-i18n="check_par">Validar Puzzle</span>
           </button>
-          <button id="btn-par-compile" class="text-xs px-4 py-1.5 rounded-lg bg-ide-card border border-ide-border text-ide-muted hover:text-white font-bold shadow transition-all active:scale-95">
+          <button id="btn-par-compile" class="text-xs px-4 py-1.5 rounded-lg bg-ide-card border border-ide-border text-ide-muted hover:text-ide-heading font-bold shadow transition-all active:scale-95">
             ⚙️ <span data-i18n="par_compile">Compilar código</span>
           </button>
         </div>
@@ -260,7 +374,7 @@
         <!-- Fragmentos disponibles -->
         <div class="bg-ide-surface border border-ide-border rounded-xl p-4 flex flex-col">
           <div class="flex items-center justify-between pb-3 border-b border-ide-border mb-3">
-            <h3 class="font-bold text-sm text-white flex items-center gap-2">
+            <h3 class="font-bold text-sm text-ide-heading flex items-center gap-2">
               <span>📑</span> <span id="lbl-par-bank" data-i18n="par_bank">Líneas disponibles (incluye distractores)</span>
             </h3>
             <span class="text-xs text-ide-muted" id="lbl-par-hint" data-i18n="par_hint">Haz clic para mover a la derecha</span>
@@ -273,10 +387,10 @@
         <!-- Solución del Alumno (con indentación) -->
         <div class="bg-ide-surface border border-ide-border rounded-xl p-4 flex flex-col">
           <div class="flex items-center justify-between pb-3 border-b border-ide-border mb-3">
-            <h3 class="font-bold text-sm text-white flex items-center gap-2">
+            <h3 class="font-bold text-sm text-ide-heading flex items-center gap-2">
               <span>🔨</span> <span id="lbl-par-target" data-i18n="par_target">Tu Algoritmo (Orden e Indentación)</span>
             </h3>
-            <span class="text-xs text-amber-400 font-mono" id="lbl-par-indent-info" data-i18n="par_indent_info">Usa [ + ] / [ - ] para tabular</span>
+            <span class="text-xs text-ide-warning font-mono" id="lbl-par-indent-info" data-i18n="par_indent_info">Usa [ + ] / [ - ] para tabular</span>
           </div>
           <div id="parsons-target" class="space-y-2 min-h-[300px] p-2 bg-ide-bg rounded-lg border border-ide-border">
             <!-- Dinámico -->
@@ -297,18 +411,19 @@
       <!-- Selector y Filtros -->
       <div class="bg-ide-surface border border-ide-border rounded-xl p-4 flex flex-wrap items-center justify-between gap-4">
         <div class="flex items-center gap-3 flex-1 min-w-[280px]">
-          <span class="text-sm font-semibold text-white whitespace-nowrap" id="lbl-edt-select" data-i18n="edt_select">Ejercicio de Código:</span>
-          <select id="select-editor-act" class="bg-ide-card border border-ide-border text-white text-sm rounded-lg px-3 py-2 flex-1 outline-none focus:border-ide-accent">
+          <span class="text-sm font-semibold text-ide-heading whitespace-nowrap" id="lbl-edt-select" data-i18n="edt_select">Ejercicio de Código:</span>
+          <select id="select-editor-act" class="bg-ide-card border border-ide-border text-ide-text text-sm rounded-lg px-3 py-2 flex-1 min-w-0 outline-none focus:border-ide-link">
             <!-- Dinámico -->
           </select>
+          <button class="btn-howto text-xs px-3 py-2 rounded-lg bg-ide-card border border-ide-border text-ide-muted hover:text-ide-heading transition-colors whitespace-nowrap" data-howto="home-howto" data-i18n="howto">❓ Cómo practicar</button>
         </div>
 
         <div class="flex items-center gap-1.5 bg-ide-card p-1 rounded-lg border border-ide-border text-xs font-medium">
           <span class="px-2 text-ide-muted text-[11px]" id="lbl-flt-edt" data-i18n="flt_level">Nivel:</span>
-          <button id="flt-edt-all" data-i18n="btn_all" class="px-2.5 py-1 rounded bg-ide-surface text-white font-bold">Todas (150)</button>
-          <button id="flt-edt-easy" data-i18n="btn_easy" class="px-2.5 py-1 rounded text-emerald-400 hover:bg-ide-surface">Fácil (50)</button>
-          <button id="flt-edt-medium" data-i18n="btn_medium" class="px-2.5 py-1 rounded text-amber-400 hover:bg-ide-surface">Medio (50)</button>
-          <button id="flt-edt-hard" data-i18n="btn_hard" class="px-2.5 py-1 rounded text-rose-400 hover:bg-ide-surface">Avanzado (50)</button>
+          <button id="flt-edt-all" data-i18n="btn_all" class="px-2.5 py-1 rounded bg-ide-surface text-ide-heading font-bold">Todas (150)</button>
+          <button id="flt-edt-easy" data-i18n="btn_easy" class="px-2.5 py-1 rounded text-ide-success hover:bg-ide-surface">Fácil (50)</button>
+          <button id="flt-edt-medium" data-i18n="btn_medium" class="px-2.5 py-1 rounded text-ide-warning hover:bg-ide-surface">Medio (50)</button>
+          <button id="flt-edt-hard" data-i18n="btn_hard" class="px-2.5 py-1 rounded text-ide-danger hover:bg-ide-surface">Avanzado (50)</button>
         </div>
       </div>
 
@@ -316,8 +431,8 @@
       <div class="bg-gradient-to-r from-ide-surface to-ide-card border border-ide-border rounded-xl p-4 flex flex-wrap items-center justify-between gap-4">
         <div>
           <div class="flex items-center gap-2 mb-1">
-            <span id="edt-level-badge" class="text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">FÁCIL</span>
-            <h2 id="edt-act-title" class="text-base font-bold text-white">1. esPar(int n)</h2>
+            <span id="edt-level-badge" class="text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider bg-ide-success/10 text-ide-success border border-ide-success/20">FÁCIL</span>
+            <h2 id="edt-act-title" class="text-base font-bold text-ide-heading">1. esPar(int n)</h2>
           </div>
           <p id="edt-act-desc" class="text-sm text-ide-muted">Determina si un número entero es par utilizando el operador módulo.</p>
         </div>
@@ -325,14 +440,14 @@
         <!-- Botonera de control de código (Incluye Vaciar / Escribir a mano) -->
         <div class="flex flex-wrap items-center gap-2">
           <!-- BOTÓN SOLICITADO: Vaciar y escribir a mano -->
-          <button id="btn-edt-clear" class="text-xs px-3 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30 font-medium transition-all flex items-center gap-1.5 shadow-sm">
+          <button id="btn-edt-clear" class="text-xs px-3 py-1.5 rounded-lg bg-ide-danger/10 hover:bg-ide-danger/20 text-ide-danger border border-ide-danger/30 font-medium transition-all flex items-center gap-1.5 shadow-sm">
             <span>🗑️</span> <span data-i18n="clear_manual">Vaciar código / Escribir a mano</span>
           </button>
           <!-- BOTÓN SOLICITADO: Ver y Comparar Solución Oficial -->
-          <button id="btn-edt-solution" class="text-xs px-3 py-1.5 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/40 font-semibold transition-all flex items-center gap-1.5 shadow-sm">
+          <button id="btn-edt-solution" class="text-xs px-3 py-1.5 rounded-lg bg-ide-warning/15 hover:bg-ide-warning/25 text-ide-warning border border-ide-warning/40 font-semibold transition-all flex items-center gap-1.5 shadow-sm">
             <span>💡</span> <span data-i18n="show_solution">Ver Solución / Comparar</span>
           </button>
-          <button id="btn-edt-restore" class="text-xs px-3 py-1.5 rounded-lg bg-ide-card border border-ide-border text-ide-muted hover:text-white font-medium transition-colors">
+          <button id="btn-edt-restore" class="text-xs px-3 py-1.5 rounded-lg bg-ide-card border border-ide-border text-ide-muted hover:text-ide-heading font-medium transition-colors">
             ↺ <span data-i18n="restore_tpl">Restaurar plantilla</span>
           </button>
           <button id="btn-edt-run" class="text-xs px-4 py-1.5 rounded-lg bg-gradient-to-r from-ide-accent to-blue-500 text-slate-900 font-bold hover:brightness-110 shadow transition-all active:scale-95 flex items-center gap-1.5">
@@ -352,7 +467,7 @@
             <span class="text-[11px] text-ide-muted font-mono" id="lbl-editor-tip" data-i18n="editor_tip">Pulsa [Tab] para indentar 4 espacios</span>
           </div>
 
-          <textarea id="java-code-editor" spellcheck="false" class="w-full h-80 bg-ide-bg text-emerald-300 font-mono text-xs sm:text-sm p-3.5 rounded-lg border border-ide-border/80 focus:border-ide-accent outline-none resize-none leading-relaxed"></textarea>
+          <textarea id="java-code-editor" spellcheck="false" class="w-full h-80 bg-ide-bg text-ide-success font-mono text-xs sm:text-sm p-3.5 rounded-lg border border-ide-border/80 focus:border-ide-link outline-none resize-none leading-relaxed"></textarea>
         </div>
 
         <!-- Terminal de Tests JUnit -->
@@ -378,8 +493,8 @@
   <!-- PIE DE PÁGINA -->
   <footer class="border-t border-ide-border bg-ide-surface mt-auto py-3 text-center text-xs text-ide-muted">
     <div class="max-w-7xl mx-auto px-4 flex flex-wrap items-center justify-between gap-2">
-      <span>JavaLearn DAM · Ciclo Formativo de Grado Superior en Desarrollo de Aplicaciones Multiplataforma · <strong class="text-slate-300" id="lbl-footer-author" data-i18n="footer_author">Autora: Mara Vañó</strong></span>
-      <span class="text-amber-400/80 font-mono">450 Actividades (150 Fácil, 150 Medio, 150 Avanzado)</span>
+      <span>JavaLearn DAM · Ciclo Formativo de Grado Superior en Desarrollo de Aplicaciones Multiplataforma · <strong class="text-ide-text" id="lbl-footer-author" data-i18n="footer_author">Autora: Mara Vañó</strong></span>
+      <span class="text-ide-warning/80 font-mono">450 Actividades (150 Fácil, 150 Medio, 150 Avanzado)</span>
     </div>
   </footer>
 
@@ -391,14 +506,14 @@
         <div class="flex items-center gap-2">
           <span class="text-xl">💡</span>
           <div>
-            <h3 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+            <h3 class="text-sm sm:text-base font-bold text-ide-heading flex items-center gap-2">
               <span id="lbl-modal-title" data-i18n="modal_title">Comparación de Solución Oficial</span>
-              <span id="modal-method-badge" class="font-mono text-xs text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/30">metodo()</span>
+              <span id="modal-method-badge" class="font-mono text-xs text-ide-warning bg-ide-warning/10 px-2 py-0.5 rounded border border-ide-warning/30">metodo()</span>
             </h3>
             <p id="lbl-modal-subtitle" class="text-xs text-ide-muted" data-i18n="modal_subtitle">Compara tu código actual con la solución Java de referencia.</p>
           </div>
         </div>
-        <button id="btn-modal-x" class="text-ide-muted hover:text-white text-lg p-1.5 rounded-lg hover:bg-ide-border transition-colors">✕</button>
+        <button id="btn-modal-x" class="text-ide-muted hover:text-ide-heading text-lg p-1.5 rounded-lg hover:bg-ide-border transition-colors">✕</button>
       </div>
 
       <!-- Cuadros de comparación paralelos -->
@@ -406,25 +521,25 @@
         <!-- Cuadro 1: Código escrito por el alumno -->
         <div class="flex flex-col bg-ide-bg rounded-xl border border-ide-border p-3">
           <div class="flex items-center justify-between pb-2 mb-2 border-b border-ide-border">
-            <span class="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+            <span class="text-xs font-bold text-ide-text flex items-center gap-1.5">
               <span>✍️</span> <span id="lbl-modal-user-code" data-i18n="modal_user_code">Tu código actual:</span>
             </span>
             <span id="modal-user-status" class="text-[11px] font-mono px-2 py-0.5 rounded bg-ide-card text-ide-muted">En edición</span>
           </div>
-          <pre id="modal-user-preview" class="flex-1 font-mono text-xs text-slate-200 overflow-x-auto whitespace-pre-wrap p-2 bg-ide-surface/60 rounded-lg min-h-[260px]"></pre>
+          <pre id="modal-user-preview" class="flex-1 font-mono text-xs text-ide-text overflow-x-auto whitespace-pre-wrap p-2 bg-ide-surface/60 rounded-lg min-h-[260px]"></pre>
         </div>
 
         <!-- Cuadro 2: Solución oficial de referencia -->
-        <div class="flex flex-col bg-ide-bg rounded-xl border border-amber-500/30 p-3">
+        <div class="flex flex-col bg-ide-bg rounded-xl border border-ide-warning/30 p-3">
           <div class="flex items-center justify-between pb-2 mb-2 border-b border-ide-border">
-            <span class="text-xs font-bold text-amber-300 flex items-center gap-1.5">
+            <span class="text-xs font-bold text-ide-warning flex items-center gap-1.5">
               <span>🌟</span> <span id="lbl-modal-official-code" data-i18n="modal_official_code">Solución oficial de referencia:</span>
             </span>
-            <button id="btn-copy-solution" data-i18n="btn_copy_solution" class="text-xs text-amber-400 hover:underline flex items-center gap-1">
+            <button id="btn-copy-solution" data-i18n="btn_copy_solution" class="text-xs text-ide-link hover:underline flex items-center gap-1">
               📋 Copiar
             </button>
           </div>
-          <pre id="modal-official-preview" class="flex-1 font-mono text-xs text-emerald-300 overflow-x-auto whitespace-pre-wrap p-2 bg-ide-surface/60 rounded-lg min-h-[260px]"></pre>
+          <pre id="modal-official-preview" class="flex-1 font-mono text-xs text-ide-success overflow-x-auto whitespace-pre-wrap p-2 bg-ide-surface/60 rounded-lg min-h-[260px]"></pre>
         </div>
       </div>
 
@@ -434,10 +549,10 @@
           💡 Puedes copiar partes de la solución o transferirla directamente al editor para probarla.
         </span>
         <div class="flex items-center gap-2">
-          <button id="btn-modal-apply" class="text-xs px-3.5 py-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 font-semibold transition-all">
+          <button id="btn-modal-apply" class="text-xs px-3.5 py-1.5 rounded-lg bg-ide-success/20 hover:bg-ide-success/30 text-ide-success border border-ide-success/40 font-semibold transition-all">
             📥 <span data-i18n="btn_apply_solution">Copiar al editor</span>
           </button>
-          <button id="btn-modal-close" class="text-xs px-4 py-1.5 rounded-lg bg-ide-border hover:bg-slate-700 text-white font-medium transition-colors">
+          <button id="btn-modal-close" class="text-xs px-4 py-1.5 rounded-lg bg-ide-border hover:bg-ide-card text-ide-heading font-medium transition-colors">
             <span data-i18n="btn_close_modal">Cerrar</span>
           </button>
         </div>
