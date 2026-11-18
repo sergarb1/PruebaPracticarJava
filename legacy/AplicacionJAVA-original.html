@@ -1,0 +1,1732 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JavaLearn DAM - Simulador de Programación Java</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            ide: {
+              bg: '#181825',
+              surface: '#1e1e2e',
+              card: '#252538',
+              border: '#313244',
+              accent: '#89b4fa',
+              success: '#a6e3a1',
+              warning: '#f9e2af',
+              danger: '#f38ba8',
+              text: '#cdd6f4',
+              muted: '#9399b2'
+            }
+          }
+        }
+      }
+    };
+  </script>
+  <!-- Inter font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    code, pre, .font-mono { font-family: 'Fira Code', monospace; }
+    /* Scrollbars discretos */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #181825; }
+    ::-webkit-scrollbar-thumb { background: #313244; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #45475a; }
+  </style>
+</head>
+<body class="bg-ide-bg text-ide-text min-h-full flex flex-col antialiased select-none">
+
+  <!-- CABECERA PRINCIPAL -->
+  <header class="bg-ide-surface border-b border-ide-border sticky top-0 z-50 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-600 to-amber-400 flex items-center justify-center font-bold text-white shadow-lg text-lg">
+          ☕
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="font-bold text-lg text-white tracking-tight">JavaLearn <span class="text-amber-400 text-xs px-2 py-0.5 rounded bg-amber-400/10 border border-amber-400/30">DAM 1º</span></h1>
+            <span class="text-[11px] font-medium text-amber-300 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full" id="lbl-author-badge">Autora: Mara Vañó</span>
+          </div>
+          <p id="lbl-subtitle" class="text-xs text-ide-muted">Plataforma interactiva de aprendizaje de Java (450 Retos)</p>
+        </div>
+      </div>
+
+      <!-- Selector de Modo -->
+      <div class="flex bg-ide-card p-1 rounded-xl border border-ide-border text-xs font-semibold gap-1">
+        <button id="btn-mode-blocks" onclick="switchMode('blocks')" class="px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 bg-ide-accent text-slate-900 shadow font-bold">
+          🧩 <span id="lbl-nav-blocks">1. Bloques</span>
+        </button>
+        <button id="btn-mode-parsons" onclick="switchMode('parsons')" class="px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 text-ide-muted hover:text-white">
+          📐 <span id="lbl-nav-parsons">2. Parsons</span>
+        </button>
+        <button id="btn-mode-editor" onclick="switchMode('editor')" class="px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 text-ide-muted hover:text-white">
+          💻 <span id="lbl-nav-editor">3. Micro-Editor</span>
+        </button>
+      </div>
+
+      <!-- Idioma y Barra de Progreso Global -->
+      <div class="flex items-center gap-3">
+        <!-- Selector Bilingüe ES / VA -->
+        <div class="flex items-center bg-ide-card rounded-lg border border-ide-border p-0.5 text-xs font-bold">
+          <button id="btn-lang-es" onclick="setLanguage('es')" class="px-2.5 py-1 rounded bg-amber-500 text-slate-900 shadow">ES</button>
+          <button id="btn-lang-va" onclick="setLanguage('va')" class="px-2.5 py-1 rounded text-ide-muted hover:text-white">VA</button>
+        </div>
+
+        <!-- Progreso global -->
+        <div class="hidden sm:flex flex-col items-end">
+          <span class="text-xs text-ide-muted flex items-center gap-1">
+            <span id="lbl-progress-title">Progreso DAM:</span> 
+            <strong id="stat-total" class="text-amber-400">0/450</strong>
+          </span>
+          <div class="w-28 h-2 bg-ide-card rounded-full overflow-hidden border border-ide-border mt-1">
+            <div id="stat-bar" class="h-full bg-gradient-to-r from-amber-400 to-ide-success transition-all duration-300" style="width: 0%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- CONTENEDOR PRINCIPAL -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 flex-1 w-full">
+
+    <!-- ========================================================= -->
+    <!-- BLOQUE 1: BLOQUES VISUALES JAVA                           -->
+    <!-- ========================================================= -->
+    <section id="panel-blocks" class="space-y-4">
+      <!-- Barra superior de Actividades y Filtros -->
+      <div class="bg-ide-surface border border-ide-border rounded-xl p-4 flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center gap-3 flex-1 min-w-[280px]">
+          <span class="text-sm font-semibold text-white whitespace-nowrap" id="lbl-blk-select">Actividad:</span>
+          <select id="select-block-act" onchange="onBlockActChange(this.value)" class="bg-ide-card border border-ide-border text-white text-sm rounded-lg px-3 py-2 flex-1 outline-none focus:border-ide-accent">
+            <!-- Se llena con JS -->
+          </select>
+        </div>
+
+        <!-- Filtros por nivel -->
+        <div class="flex items-center gap-1.5 bg-ide-card p-1 rounded-lg border border-ide-border text-xs font-medium">
+          <span class="px-2 text-ide-muted text-[11px]" id="lbl-flt-blk">Nivel:</span>
+          <button id="flt-blk-all" onclick="setBlockFilter('all')" class="px-2.5 py-1 rounded bg-ide-surface text-white font-bold">Todas (150)</button>
+          <button id="flt-blk-easy" onclick="setBlockFilter('easy')" class="px-2.5 py-1 rounded text-emerald-400 hover:bg-ide-surface">Fácil (50)</button>
+          <button id="flt-blk-medium" onclick="setBlockFilter('medium')" class="px-2.5 py-1 rounded text-amber-400 hover:bg-ide-surface">Medio (50)</button>
+          <button id="flt-blk-hard" onclick="setBlockFilter('hard')" class="px-2.5 py-1 rounded text-rose-400 hover:bg-ide-surface">Avanzado (50)</button>
+        </div>
+      </div>
+
+      <!-- Descripción de la actividad actual -->
+      <div class="bg-gradient-to-r from-ide-surface to-ide-card border border-ide-border rounded-xl p-4 flex items-start justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2 mb-1">
+            <span id="blk-level-badge" class="text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">FÁCIL</span>
+            <h2 id="blk-act-title" class="text-base font-bold text-white">1. Declaración e inicialización de variables</h2>
+          </div>
+          <p id="blk-act-desc" class="text-sm text-ide-muted">Ensambla los bloques para declarar una variable entera 'edad' con valor 18 y mostrar su valor por consola.</p>
+        </div>
+        <div class="text-right whitespace-nowrap">
+          <span class="text-xs text-ide-muted block" id="lbl-blk-target">Salida esperada:</span>
+          <code id="blk-target-output" class="text-xs text-ide-success bg-ide-bg px-2 py-1 rounded border border-ide-border font-mono font-semibold">18</code>
+        </div>
+      </div>
+
+      <!-- Zona de Trabajo de Bloques -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        <!-- Paleta de Bloques Disponibles -->
+        <div class="lg:col-span-5 bg-ide-surface border border-ide-border rounded-xl p-4 flex flex-col">
+          <div class="flex items-center justify-between pb-3 border-b border-ide-border mb-3">
+            <h3 class="font-bold text-sm text-white flex items-center gap-2">
+              <span>📦</span> <span id="lbl-palette">Paleta de Bloques Java</span>
+            </h3>
+            <span class="text-xs text-ide-muted" id="lbl-click-add">Haz clic para añadir</span>
+          </div>
+
+          <div id="palette-container" class="space-y-2 max-h-[380px] overflow-y-auto pr-1">
+            <!-- Bloques inyectados dinámicamente -->
+          </div>
+        </div>
+
+        <!-- Área de ensamblado y previsualización de código Java -->
+        <div class="lg:col-span-7 space-y-4">
+          <!-- Lienzo de ensamblado -->
+          <div class="bg-ide-surface border border-ide-border rounded-xl p-4">
+            <div class="flex items-center justify-between pb-3 border-b border-ide-border mb-3">
+              <h3 class="font-bold text-sm text-white flex items-center gap-2">
+                <span>🧩</span> <span id="lbl-workspace">Programa Ensamblado</span>
+                <span id="blk-counter" class="text-xs font-normal text-ide-muted">(0 bloques)</span>
+              </h3>
+              <div class="flex gap-2">
+                <button onclick="clearBlockWorkspace()" class="text-xs px-2.5 py-1 rounded bg-ide-card hover:bg-rose-500/20 text-rose-400 border border-ide-border transition-colors">
+                  <span id="btn-clear-blk">Vaciar</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Lista de bloques colocados -->
+            <div id="workspace-container" class="space-y-2 min-h-[140px] max-h-[220px] overflow-y-auto p-2 bg-ide-bg/60 rounded-lg border border-dashed border-ide-border/80">
+              <div id="workspace-placeholder" class="h-full flex items-center justify-center text-xs text-ide-muted italic py-6">
+                Haz clic en los bloques de la paleta para construir tu programa Java aquí.
+              </div>
+            </div>
+          </div>
+
+          <!-- Visor de código Java generado & Consola de ejecución -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Código Java Puro -->
+            <div class="bg-ide-surface border border-ide-border rounded-xl p-3 flex flex-col">
+              <div class="flex items-center justify-between pb-2 mb-2 border-b border-ide-border">
+                <span class="text-xs font-mono text-ide-muted flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-amber-400"></span> Main.java
+                </span>
+                <button onclick="copyGeneratedBlockCode()" class="text-[11px] text-ide-accent hover:underline" id="btn-copy-code">Copiar</button>
+              </div>
+              <pre id="blocks-java-code" class="text-xs text-emerald-400 font-mono bg-ide-bg p-3 rounded-lg overflow-x-auto flex-1 h-[140px]">public class Main {
+    public static void main(String[] args) {
+        // Añade bloques para generar código...
+    }
+}</pre>
+            </div>
+
+            <!-- Terminal Simulada -->
+            <div class="bg-ide-surface border border-ide-border rounded-xl p-3 flex flex-col">
+              <div class="flex items-center justify-between pb-2 mb-2 border-b border-ide-border">
+                <span class="text-xs font-mono text-ide-muted flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-emerald-400"></span> Terminal JVM
+                </span>
+                <button onclick="runBlockSimulation()" class="text-xs px-3 py-1 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-900 font-bold rounded shadow transition-transform active:scale-95">
+                  ▶ <span id="btn-run-blk">Compilar y Ejecutar</span>
+                </button>
+              </div>
+              <div id="blocks-terminal" class="text-xs text-slate-300 font-mono bg-ide-bg p-3 rounded-lg flex-1 h-[140px] overflow-y-auto whitespace-pre-wrap">
+&gt; Esperando ejecución...
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- BLOQUE 2: PUZZLES DE PARSONS                              -->
+    <!-- ========================================================= -->
+    <section id="panel-parsons" class="space-y-4 hidden">
+      <!-- Selector y Filtros -->
+      <div class="bg-ide-surface border border-ide-border rounded-xl p-4 flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center gap-3 flex-1 min-w-[280px]">
+          <span class="text-sm font-semibold text-white whitespace-nowrap" id="lbl-par-select">Reto Parsons:</span>
+          <select id="select-parsons-act" onchange="onParsonsActChange(this.value)" class="bg-ide-card border border-ide-border text-white text-sm rounded-lg px-3 py-2 flex-1 outline-none focus:border-ide-accent">
+            <!-- Dinámico -->
+          </select>
+        </div>
+
+        <div class="flex items-center gap-1.5 bg-ide-card p-1 rounded-lg border border-ide-border text-xs font-medium">
+          <span class="px-2 text-ide-muted text-[11px]" id="lbl-flt-par">Nivel:</span>
+          <button id="flt-par-all" onclick="setParsonsFilter('all')" class="px-2.5 py-1 rounded bg-ide-surface text-white font-bold">Todas (150)</button>
+          <button id="flt-par-easy" onclick="setParsonsFilter('easy')" class="px-2.5 py-1 rounded text-emerald-400 hover:bg-ide-surface">Fácil (50)</button>
+          <button id="flt-par-medium" onclick="setParsonsFilter('medium')" class="px-2.5 py-1 rounded text-amber-400 hover:bg-ide-surface">Medio (50)</button>
+          <button id="flt-par-hard" onclick="setParsonsFilter('hard')" class="px-2.5 py-1 rounded text-rose-400 hover:bg-ide-surface">Avanzado (50)</button>
+        </div>
+      </div>
+
+      <!-- Enunciado -->
+      <div class="bg-gradient-to-r from-ide-surface to-ide-card border border-ide-border rounded-xl p-4 flex items-start justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2 mb-1">
+            <span id="par-level-badge" class="text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">FÁCIL</span>
+            <h2 id="par-act-title" class="text-base font-bold text-white">1. Factorial de un número</h2>
+          </div>
+          <p id="par-act-desc" class="text-sm text-ide-muted">Ordena las líneas de código e indenta correctamente con tabulación. ¡Cuidado con las líneas trampa que no pertenecen al algoritmo!</p>
+        </div>
+        <div class="flex gap-2">
+          <button onclick="resetParsonsCurrent()" class="text-xs px-3 py-1.5 rounded-lg bg-ide-card border border-ide-border text-ide-muted hover:text-white transition-colors">
+            ↺ <span id="btn-reset-par">Reiniciar</span>
+          </button>
+          <button onclick="checkParsonsSolution()" class="text-xs px-4 py-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-amber-400 text-slate-900 font-bold hover:brightness-110 shadow transition-all active:scale-95">
+            ✔ <span id="btn-check-par">Validar Puzzle</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Tableros Parsons -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <!-- Fragmentos disponibles -->
+        <div class="bg-ide-surface border border-ide-border rounded-xl p-4 flex flex-col">
+          <div class="flex items-center justify-between pb-3 border-b border-ide-border mb-3">
+            <h3 class="font-bold text-sm text-white flex items-center gap-2">
+              <span>📑</span> <span id="lbl-par-bank">Líneas disponibles (incluye distractores)</span>
+            </h3>
+            <span class="text-xs text-ide-muted" id="lbl-par-hint">Haz clic para mover a la derecha</span>
+          </div>
+          <div id="parsons-bank" class="space-y-2 min-h-[300px] p-2 bg-ide-bg/40 rounded-lg">
+            <!-- Dinámico -->
+          </div>
+        </div>
+
+        <!-- Solución del Alumno (con indentación) -->
+        <div class="bg-ide-surface border border-ide-border rounded-xl p-4 flex flex-col">
+          <div class="flex items-center justify-between pb-3 border-b border-ide-border mb-3">
+            <h3 class="font-bold text-sm text-white flex items-center gap-2">
+              <span>🔨</span> <span id="lbl-par-target">Tu Algoritmo (Orden e Indentación)</span>
+            </h3>
+            <span class="text-xs text-amber-400 font-mono" id="lbl-par-indent-info">Usa [ + ] / [ - ] para tabular</span>
+          </div>
+          <div id="parsons-target" class="space-y-2 min-h-[300px] p-2 bg-ide-bg rounded-lg border border-ide-border">
+            <!-- Dinámico -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Feedback de Validación -->
+      <div id="parsons-feedback" class="p-3 rounded-xl border border-ide-border bg-ide-surface text-xs font-mono hidden">
+        <!-- Mensajes de éxito o error sintáctico -->
+      </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- BLOQUE 3: MICRO-EDITOR & JUNIT RUNNER                     -->
+    <!-- ========================================================= -->
+    <section id="panel-editor" class="space-y-4 hidden">
+      <!-- Selector y Filtros -->
+      <div class="bg-ide-surface border border-ide-border rounded-xl p-4 flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center gap-3 flex-1 min-w-[280px]">
+          <span class="text-sm font-semibold text-white whitespace-nowrap" id="lbl-edt-select">Ejercicio de Código:</span>
+          <select id="select-editor-act" onchange="onEditorActChange(this.value)" class="bg-ide-card border border-ide-border text-white text-sm rounded-lg px-3 py-2 flex-1 outline-none focus:border-ide-accent">
+            <!-- Dinámico -->
+          </select>
+        </div>
+
+        <div class="flex items-center gap-1.5 bg-ide-card p-1 rounded-lg border border-ide-border text-xs font-medium">
+          <span class="px-2 text-ide-muted text-[11px]" id="lbl-flt-edt">Nivel:</span>
+          <button id="flt-edt-all" onclick="setEditorFilter('all')" class="px-2.5 py-1 rounded bg-ide-surface text-white font-bold">Todas (150)</button>
+          <button id="flt-edt-easy" onclick="setEditorFilter('easy')" class="px-2.5 py-1 rounded text-emerald-400 hover:bg-ide-surface">Fácil (50)</button>
+          <button id="flt-edt-medium" onclick="setEditorFilter('medium')" class="px-2.5 py-1 rounded text-amber-400 hover:bg-ide-surface">Medio (50)</button>
+          <button id="flt-edt-hard" onclick="setEditorFilter('hard')" class="px-2.5 py-1 rounded text-rose-400 hover:bg-ide-surface">Avanzado (50)</button>
+        </div>
+      </div>
+
+      <!-- Enunciado y Botones de Plantilla -->
+      <div class="bg-gradient-to-r from-ide-surface to-ide-card border border-ide-border rounded-xl p-4 flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2 mb-1">
+            <span id="edt-level-badge" class="text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">FÁCIL</span>
+            <h2 id="edt-act-title" class="text-base font-bold text-white">1. esPar(int n)</h2>
+          </div>
+          <p id="edt-act-desc" class="text-sm text-ide-muted">Determina si un número entero es par utilizando el operador módulo.</p>
+        </div>
+
+        <!-- Botonera de control de código (Incluye Vaciar / Escribir a mano) -->
+        <div class="flex flex-wrap items-center gap-2">
+          <!-- BOTÓN SOLICITADO: Vaciar y escribir a mano -->
+          <button onclick="clearEditorManual()" class="text-xs px-3 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30 font-medium transition-all flex items-center gap-1.5 shadow-sm">
+            <span>🗑️</span> <span id="btn-clear-manual">Vaciar código / Escribir a mano</span>
+          </button>
+          <!-- BOTÓN SOLICITADO: Ver y Comparar Solución Oficial -->
+          <button onclick="openSolutionModal()" class="text-xs px-3 py-1.5 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/40 font-semibold transition-all flex items-center gap-1.5 shadow-sm">
+            <span>💡</span> <span id="btn-show-solution">Ver Solución / Comparar</span>
+          </button>
+          <button onclick="restoreEditorTemplate()" class="text-xs px-3 py-1.5 rounded-lg bg-ide-card border border-ide-border text-ide-muted hover:text-white font-medium transition-colors">
+            ↺ <span id="btn-restore-tpl">Restaurar plantilla</span>
+          </button>
+          <button onclick="runEditorJUnitTests()" class="text-xs px-4 py-1.5 rounded-lg bg-gradient-to-r from-ide-accent to-blue-500 text-slate-900 font-bold hover:brightness-110 shadow transition-all active:scale-95 flex items-center gap-1.5">
+            <span>⚡</span> <span id="btn-run-tests">Ejecutar JUnit Tests</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Editor y Consola de Tests -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        <!-- Editor de Código -->
+        <div class="lg:col-span-7 bg-ide-surface border border-ide-border rounded-xl p-3 flex flex-col">
+          <div class="flex items-center justify-between pb-2 mb-2 border-b border-ide-border">
+            <span class="text-xs font-mono text-ide-muted flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-blue-400"></span> Solucion.java
+            </span>
+            <span class="text-[11px] text-ide-muted font-mono" id="lbl-editor-tip">Pulsa [Tab] para indentar 4 espacios</span>
+          </div>
+
+          <textarea id="java-code-editor" spellcheck="false" class="w-full h-80 bg-ide-bg text-emerald-300 font-mono text-xs sm:text-sm p-3.5 rounded-lg border border-ide-border/80 focus:border-ide-accent outline-none resize-none leading-relaxed"></textarea>
+        </div>
+
+        <!-- Terminal de Tests JUnit -->
+        <div class="lg:col-span-5 bg-ide-surface border border-ide-border rounded-xl p-3 flex flex-col">
+          <div class="flex items-center justify-between pb-2 mb-2 border-b border-ide-border">
+            <span class="text-xs font-mono text-ide-muted flex items-center gap-1.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-ide-success"></span> JUnit Test Runner
+            </span>
+            <span id="test-summary-badge" class="text-[11px] font-mono px-2 py-0.5 rounded bg-ide-card text-ide-muted">0/0 pasados</span>
+          </div>
+
+          <div id="junit-terminal" class="bg-ide-bg p-3 rounded-lg flex-1 h-80 overflow-y-auto space-y-2 font-mono text-xs">
+            <div class="text-ide-muted italic py-10 text-center">
+              Haz clic en "Ejecutar JUnit Tests" para comprobar tu solución frente a la batería de pruebas.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- PIE DE PÁGINA -->
+  <footer class="border-t border-ide-border bg-ide-surface mt-auto py-3 text-center text-xs text-ide-muted">
+    <div class="max-w-7xl mx-auto px-4 flex flex-wrap items-center justify-between gap-2">
+      <span>JavaLearn DAM · Ciclo Formativo de Grado Superior en Desarrollo de Aplicaciones Multiplataforma · <strong class="text-slate-300" id="lbl-footer-author">Autora: Mara Vañó</strong></span>
+      <span class="text-amber-400/80 font-mono">450 Actividades (150 Fácil, 150 Medio, 150 Avanzado)</span>
+    </div>
+  </footer>
+
+  <!-- MODAL DE COMPARACIÓN DE SOLUCIÓN (BLOQUE 3) -->
+  <div id="solution-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-6 animate-fadeIn">
+    <div class="bg-ide-surface border border-ide-border rounded-2xl max-w-5xl w-full max-h-[92vh] flex flex-col shadow-2xl overflow-hidden">
+      <!-- Cabecera del modal -->
+      <div class="p-4 border-b border-ide-border flex items-center justify-between bg-ide-card">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">💡</span>
+          <div>
+            <h3 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+              <span id="lbl-modal-title">Comparación de Solución Oficial</span>
+              <span id="modal-method-badge" class="font-mono text-xs text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/30">metodo()</span>
+            </h3>
+            <p id="lbl-modal-subtitle" class="text-xs text-ide-muted">Compara tu código actual con la solución Java de referencia.</p>
+          </div>
+        </div>
+        <button onclick="closeSolutionModal()" class="text-ide-muted hover:text-white text-lg p-1.5 rounded-lg hover:bg-ide-border transition-colors">✕</button>
+      </div>
+
+      <!-- Cuadros de comparación paralelos -->
+      <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-4 flex-1 overflow-y-auto">
+        <!-- Cuadro 1: Código escrito por el alumno -->
+        <div class="flex flex-col bg-ide-bg rounded-xl border border-ide-border p-3">
+          <div class="flex items-center justify-between pb-2 mb-2 border-b border-ide-border">
+            <span class="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+              <span>✍️</span> <span id="lbl-modal-user-code">Tu código actual:</span>
+            </span>
+            <span id="modal-user-status" class="text-[11px] font-mono px-2 py-0.5 rounded bg-ide-card text-ide-muted">En edición</span>
+          </div>
+          <pre id="modal-user-preview" class="flex-1 font-mono text-xs text-slate-200 overflow-x-auto whitespace-pre-wrap p-2 bg-ide-surface/60 rounded-lg min-h-[260px]"></pre>
+        </div>
+
+        <!-- Cuadro 2: Solución oficial de referencia -->
+        <div class="flex flex-col bg-ide-bg rounded-xl border border-amber-500/30 p-3">
+          <div class="flex items-center justify-between pb-2 mb-2 border-b border-ide-border">
+            <span class="text-xs font-bold text-amber-300 flex items-center gap-1.5">
+              <span>🌟</span> <span id="lbl-modal-official-code">Solución oficial de referencia:</span>
+            </span>
+            <button onclick="copyOfficialSolution()" class="text-xs text-amber-400 hover:underline flex items-center gap-1" id="btn-copy-solution">
+              📋 Copiar
+            </button>
+          </div>
+          <pre id="modal-official-preview" class="flex-1 font-mono text-xs text-emerald-300 overflow-x-auto whitespace-pre-wrap p-2 bg-ide-surface/60 rounded-lg min-h-[260px]"></pre>
+        </div>
+      </div>
+
+      <!-- Pie del modal con acciones rápidas -->
+      <div class="p-4 border-t border-ide-border bg-ide-card flex flex-wrap items-center justify-between gap-3">
+        <span class="text-xs text-ide-muted" id="lbl-modal-tip">
+          💡 Puedes copiar partes de la solución o transferirla directamente al editor para probarla.
+        </span>
+        <div class="flex items-center gap-2">
+          <button onclick="applyOfficialSolutionToEditor()" class="text-xs px-3.5 py-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 font-semibold transition-all">
+            📥 <span id="btn-apply-solution">Copiar al editor</span>
+          </button>
+          <button onclick="closeSolutionModal()" class="text-xs px-4 py-1.5 rounded-lg bg-ide-border hover:bg-slate-700 text-white font-medium transition-colors">
+            <span id="btn-close-modal">Cerrar</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCRIPT LOGIC -->
+  <script>
+    /* ==========================================================================
+       DICCIONARIO BILINGÜE (CASTELLANO / VALENCIÀ)
+       ========================================================================== */
+    let currentLang = 'es';
+
+    const I18N = {
+      es: {
+        author_badge: 'Autora: Mara Vañó',
+        footer_author: 'Autora: Mara Vañó',
+        subtitle: 'Plataforma interactiva de aprendizaje de Java (450 Retos)',
+        nav_blocks: '1. Bloques',
+        nav_parsons: '2. Parsons',
+        nav_editor: '3. Micro-Editor',
+        progress_title: 'Progreso DAM:',
+        blk_select: 'Actividad:',
+        par_select: 'Reto Parsons:',
+        edt_select: 'Ejercicio de Código:',
+        flt_level: 'Nivel:',
+        btn_all: 'Todas (150)',
+        btn_easy: 'Fácil (50)',
+        btn_medium: 'Medio (50)',
+        btn_hard: 'Avanzado (50)',
+        target_output: 'Salida esperada:',
+        palette: 'Paleta de Bloques Java',
+        click_add: 'Haz clic para añadir',
+        workspace: 'Programa Ensamblado',
+        clear_blk: 'Vaciar',
+        copy_code: 'Copiar',
+        run_blk: 'Compilar y Ejecutar',
+        par_bank: 'Líneas disponibles (incluye distractores)',
+        par_hint: 'Haz clic para mover a la derecha',
+        par_target: 'Tu Algoritmo (Orden e Indentación)',
+        par_indent_info: 'Usa [ + ] / [ - ] para tabular',
+        reset_par: 'Reiniciar',
+        check_par: 'Validar Puzzle',
+        clear_manual: 'Vaciar código / Escribir a mano',
+        show_solution: 'Ver Solución / Comparar',
+        restore_tpl: 'Restaurar plantilla',
+        run_tests: 'Ejecutar JUnit Tests',
+        editor_tip: 'Pulsa [Tab] para indentar 4 espacios',
+        blocks_empty_ws: 'Haz clic en los bloques de la paleta para construir tu programa Java aquí.',
+        terminal_waiting: '> Esperando ejecución...',
+        junit_waiting: 'Haz clic en "Ejecutar JUnit Tests" para comprobar tu solución frente a la batería de pruebas.',
+        badge_easy: 'FÁCIL',
+        badge_medium: 'MEDIO',
+        badge_hard: 'AVANZADO',
+        modal_title: 'Comparación de Solución Oficial',
+        modal_subtitle: 'Compara tu código actual con la solución Java de referencia.',
+        modal_user_code: 'Tu código actual:',
+        modal_official_code: 'Solución oficial de referencia:',
+        btn_copy_solution: '📋 Copiar solución',
+        btn_apply_solution: 'Copiar al editor',
+        btn_close_modal: 'Cerrar',
+        modal_tip: '💡 Puedes comparar la lógica o aplicar la solución directamente a tu editor.'
+      },
+      va: {
+        author_badge: 'Autora: Mara Vañó',
+        footer_author: 'Autora: Mara Vañó',
+        subtitle: 'Plataforma interactiva d\'aprenentatge de Java (450 Reptes)',
+        nav_blocks: '1. Blocs',
+        nav_parsons: '2. Parsons',
+        nav_editor: '3. Micro-Editor',
+        progress_title: 'Progrés DAM:',
+        blk_select: 'Activitat:',
+        par_select: 'Repte Parsons:',
+        edt_select: 'Exercici de Codi:',
+        flt_level: 'Nivell:',
+        btn_all: 'Totes (150)',
+        btn_easy: 'Fàcil (50)',
+        btn_medium: 'Mitjà (50)',
+        btn_hard: 'Avançat (50)',
+        target_output: 'Eixida esperada:',
+        palette: 'Paleta de Blocs Java',
+        click_add: 'Fes clic per afegir',
+        workspace: 'Programa Ensamblat',
+        clear_blk: 'Buidar',
+        copy_code: 'Copiar',
+        run_blk: 'Compilar i Executar',
+        par_bank: 'Línies disponibles (inclou distractors)',
+        par_hint: 'Fes clic per moure a la dreta',
+        par_target: 'El teu Algorisme (Orde i Indentació)',
+        par_indent_info: 'Usa [ + ] / [ - ] per a tabular',
+        reset_par: 'Reiniciar',
+        check_par: 'Validar Puzzle',
+        clear_manual: 'Buidar codi / Escriure a mà',
+        show_solution: 'Veure Solució / Comparar',
+        restore_tpl: 'Restaurar plantilla',
+        run_tests: 'Executar JUnit Tests',
+        editor_tip: 'Prem [Tab] per a tabular 4 espais',
+        blocks_empty_ws: 'Fes clic en els blocs de la paleta per a construir el teu programa Java ací.',
+        terminal_waiting: '> Esperant execució...',
+        junit_waiting: 'Fes clic a "Executar JUnit Tests" per comprovar la teua solució contra la bateria de proves.',
+        badge_easy: 'FÀCIL',
+        badge_medium: 'MITJÀ',
+        badge_hard: 'AVANÇAT',
+        modal_title: 'Comparació de Solució Oficial',
+        modal_subtitle: 'Compara el teu codi actual amb la solució Java de referència.',
+        modal_user_code: 'El teu codi actual:',
+        modal_official_code: 'Solució oficial de referència:',
+        btn_copy_solution: '📋 Copiar solució',
+        btn_apply_solution: 'Copiar a l\'editor',
+        btn_close_modal: 'Tancar',
+        modal_tip: '💡 Pots comparar la lògica o aplicar la solució directament al teu editor.'
+      }
+    };
+
+    function setLanguage(lang) {
+      currentLang = lang;
+      document.getElementById('btn-lang-es').className = lang === 'es' 
+        ? 'px-2.5 py-1 rounded bg-amber-500 text-slate-900 shadow' 
+        : 'px-2.5 py-1 rounded text-ide-muted hover:text-white';
+      document.getElementById('btn-lang-va').className = lang === 'va' 
+        ? 'px-2.5 py-1 rounded bg-amber-500 text-slate-900 shadow' 
+        : 'px-2.5 py-1 rounded text-ide-muted hover:text-white';
+
+      const t = I18N[lang];
+      document.getElementById('lbl-author-badge').textContent = t.author_badge;
+      document.getElementById('lbl-footer-author').textContent = t.footer_author;
+      document.getElementById('lbl-subtitle').textContent = t.subtitle;
+      document.getElementById('lbl-nav-blocks').textContent = t.nav_blocks;
+      document.getElementById('lbl-nav-parsons').textContent = t.nav_parsons;
+      document.getElementById('lbl-nav-editor').textContent = t.nav_editor;
+      document.getElementById('lbl-progress-title').textContent = t.progress_title;
+
+      // Labels de Bloques
+      document.getElementById('lbl-blk-select').textContent = t.blk_select;
+      document.getElementById('lbl-flt-blk').textContent = t.flt_level;
+      document.getElementById('flt-blk-all').textContent = t.btn_all;
+      document.getElementById('flt-blk-easy').textContent = t.btn_easy;
+      document.getElementById('flt-blk-medium').textContent = t.btn_medium;
+      document.getElementById('flt-blk-hard').textContent = t.btn_hard;
+      document.getElementById('lbl-blk-target').textContent = t.target_output;
+      document.getElementById('lbl-palette').textContent = t.palette;
+      document.getElementById('lbl-click-add').textContent = t.click_add;
+      document.getElementById('lbl-workspace').textContent = t.workspace;
+      document.getElementById('btn-clear-blk').textContent = t.clear_blk;
+      document.getElementById('btn-copy-code').textContent = t.copy_code;
+      document.getElementById('btn-run-blk').textContent = t.run_blk;
+
+      // Labels de Parsons
+      document.getElementById('lbl-par-select').textContent = t.par_select;
+      document.getElementById('lbl-flt-par').textContent = t.flt_level;
+      document.getElementById('flt-par-all').textContent = t.btn_all;
+      document.getElementById('flt-par-easy').textContent = t.btn_easy;
+      document.getElementById('flt-par-medium').textContent = t.btn_medium;
+      document.getElementById('flt-par-hard').textContent = t.btn_hard;
+      document.getElementById('btn-reset-par').textContent = t.reset_par;
+      document.getElementById('btn-check-par').textContent = t.check_par;
+      document.getElementById('lbl-par-bank').textContent = t.par_bank;
+      document.getElementById('lbl-par-hint').textContent = t.par_hint;
+      document.getElementById('lbl-par-target').textContent = t.par_target;
+      document.getElementById('lbl-par-indent-info').textContent = t.par_indent_info;
+
+      // Labels de Micro-Editor
+      document.getElementById('lbl-edt-select').textContent = t.edt_select;
+      document.getElementById('lbl-flt-edt').textContent = t.flt_level;
+      document.getElementById('flt-edt-all').textContent = t.btn_all;
+      document.getElementById('flt-edt-easy').textContent = t.btn_easy;
+      document.getElementById('flt-edt-medium').textContent = t.btn_medium;
+      document.getElementById('flt-edt-hard').textContent = t.btn_hard;
+      document.getElementById('btn-clear-manual').textContent = t.clear_manual;
+      document.getElementById('btn-show-solution').textContent = t.show_solution;
+      document.getElementById('btn-restore-tpl').textContent = t.restore_tpl;
+      document.getElementById('btn-run-tests').textContent = t.run_tests;
+      document.getElementById('lbl-editor-tip').textContent = t.editor_tip;
+
+      // Modal labels
+      document.getElementById('lbl-modal-title').textContent = t.modal_title;
+      document.getElementById('lbl-modal-subtitle').textContent = t.modal_subtitle;
+      document.getElementById('lbl-modal-user-code').textContent = t.modal_user_code;
+      document.getElementById('lbl-modal-official-code').textContent = t.modal_official_code;
+      document.getElementById('btn-copy-solution').textContent = t.btn_copy_solution;
+      document.getElementById('btn-apply-solution').textContent = t.btn_apply_solution;
+      document.getElementById('btn-close-modal').textContent = t.btn_close_modal;
+      document.getElementById('lbl-modal-tip').textContent = t.modal_tip;
+
+      populateBlockSelect();
+      populateParsonsSelect();
+      populateEditorSelect();
+
+      renderBlockActivity(currentBlockActId);
+      renderParsonsActivity(currentParsonsActId);
+      renderEditorActivity(currentEditorActId, false);
+      updateGlobalProgress();
+    }
+
+    /* ==========================================================================
+       GESTIÓN DE ESTADO Y PROGRESO (LOCALSTORAGE)
+       ========================================================================== */
+    let progress = {
+      blocks: {},
+      parsons: {},
+      editor: {}
+    };
+
+    function loadProgress() {
+      try {
+        const saved = localStorage.getItem('javalearn_dam_prog');
+        if (saved) progress = JSON.parse(saved);
+      } catch (e) {
+        console.warn('LocalStorage inaccesible', e);
+      }
+      updateGlobalProgress();
+    }
+
+    function saveProgress() {
+      try {
+        localStorage.setItem('javalearn_dam_prog', JSON.stringify(progress));
+      } catch (e) {}
+      updateGlobalProgress();
+    }
+
+    function updateGlobalProgress() {
+      const bCount = Object.keys(progress.blocks || {}).length;
+      const pCount = Object.keys(progress.parsons || {}).length;
+      const eCount = Object.keys(progress.editor || {}).length;
+      const total = bCount + pCount + eCount;
+      document.getElementById('stat-total').textContent = `${total}/450`;
+      const pct = Math.min(100, Math.round((total / 450) * 100));
+      document.getElementById('stat-bar').style.width = `${pct}%`;
+    }
+
+    /* ==========================================================================
+       CAMBIO DE MODOS / PESTAÑAS PRINCIPALES
+       ========================================================================== */
+    let currentMode = 'blocks';
+
+    function switchMode(mode) {
+      currentMode = mode;
+      ['blocks', 'parsons', 'editor'].forEach(m => {
+        const btn = document.getElementById(`btn-mode-${m}`);
+        const panel = document.getElementById(`panel-${m}`);
+        if (!btn || !panel) return;
+        if (m === mode) {
+          panel.classList.remove('hidden');
+          btn.className = 'px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 bg-ide-accent text-slate-900 shadow font-bold';
+        } else {
+          panel.classList.add('hidden');
+          btn.className = 'px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 text-ide-muted hover:text-white';
+        }
+      });
+      if (mode === 'parsons') renderParsonsActivity(currentParsonsActId);
+      if (mode === 'editor') renderEditorActivity(currentEditorActId, true);
+    }
+
+    function getLevelLabel(level) {
+      if (level === 'easy') return currentLang === 'es' ? 'FÁCIL' : 'FÀCIL';
+      if (level === 'medium') return currentLang === 'es' ? 'MEDIO' : 'MITJÀ';
+      return currentLang === 'es' ? 'AVANZADO' : 'AVANÇAT';
+    }
+
+    function getBadgeClass(level) {
+      if (level === 'easy') return 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+      if (level === 'medium') return 'bg-amber-500/10 text-amber-400 border border-amber-500/20';
+      return 'bg-rose-500/10 text-rose-400 border border-rose-500/20';
+    }
+
+    /* ==========================================================================
+       CATÁLOGO DETALLADO Y DESCRIPTIVO DE 150 ALGORITMOS (ESPECÍFICOS PARA DAM)
+       ========================================================================== */
+    const TOPICS_EASY = [
+      { name: "imprimirEdadEntera", t_es: "Declarar y mostrar edad entera", t_va: "Declarar i mostrar edat sencera", d_es: "Declara la variable de tipo primitivo int con valor 18 y muestra su contenido en la salida estándar.", d_va: "Declara la variable de tipus primitiu int amb valor 18 i mostra el seu contingut per pantalla.", val: "18", code: "int edad = 18;\nSystem.out.println(edad);" },
+      { name: "saludarCicloDAM", t_es: "Concatenar texto con ciclo formativo", t_va: "Concatenar text amb cicle formatiu", d_es: "Inicializa un String con el nombre del ciclo y concaténalo con el mensaje de bienvenida 'Hola DAM'.", d_va: "Inicialitza un String amb el nom del cicle i concatena'l amb el missatge de benvinguda 'Hola DAM'.", val: "Hola DAM", code: "String ciclo = \"DAM\";\nSystem.out.println(\"Hola \" + ciclo);" },
+      { name: "sumarDosNumeros", t_es: "Suma aritmética de dos enteros (5 + 7)", t_va: "Suma aritmètica de dos enters (5 + 7)", d_es: "Almacena los valores 5 y 7 en dos variables enteras y calcula su suma con el operador +.", d_va: "Emmagatzema els valors 5 i 7 en dues variables enteres i calcula la seua suma amb l'operador +.", val: "12", code: "int a = 5;\nint b = 7;\nSystem.out.println(a + b);" },
+      { name: "restarGastoPresupuesto", t_es: "Resta de gasto sobre saldo total", t_va: "Resta de despesa sobre saldo total", d_es: "Calcula el saldo restante tras descontar un gasto de 5 sobre un saldo total de 20.", d_va: "Calcula el saldo restant després de descomptar una despesa de 5 sobre un saldo total de 20.", val: "15", code: "int total = 20;\nint gasto = 5;\nSystem.out.println(total - gasto);" },
+      { name: "calcularAreaRectangulo", t_es: "Área de rectángulo (base 6 * altura 4)", t_va: "Àrea de rectangle (base 6 * alçària 4)", d_es: "Aplica la fórmula matemática área = base * altura usando dos variables enteras de dimensión.", d_va: "Aplica la fórmula matemàtica àrea = base * alçària emprant dues variables enteres de dimensió.", val: "24", code: "int base = 6;\nint altura = 4;\nSystem.out.println(base * altura);" },
+      { name: "cocienteDivisionEntera", t_es: "Cociente truncado de división entera", t_va: "Quocient truncat de divisió sencera", d_es: "Aplica el operador de división entera / entre 17 y 4 para obtener únicamente el cociente sin decimales.", d_va: "Aplica l'operador de divisió sencera / entre 17 i 4 per a obtindre només el quocient sense decimals.", val: "4", code: "int dividendo = 17;\nint divisor = 4;\nSystem.out.println(dividendo / divisor);" },
+      { name: "restoModuloDivision", t_es: "Cálculo de resto o residuo con operador %", t_va: "Càlcul de residu amb operador mòdul %", d_es: "Obtén el resto de dividir 13 entre 4 utilizando el operador de módulo %.", d_va: "Obtín el residu de dividir 13 entre 4 utilitzant l'operador de mòdul %.", val: "1", code: "int n = 13;\nint d = 4;\nSystem.out.println(n % d);" },
+      { name: "verificarEstadoMatricula", t_es: "Comprobar flag booleano de matrícula", t_va: "Comprovar flag booleà de matrícula", d_es: "Declara un booleano 'matriculado' con valor true y muestra su estado de confirmación.", d_va: "Declara un booleà 'matriculat' amb valor true i mostra el seu estat de confirmació.", val: "true", code: "boolean matriculado = true;\nSystem.out.println(matriculado);" },
+      { name: "aplicarDescuentoDirecto", t_es: "Aplicar descuento monetario de 10€ a 100€", t_va: "Aplicar descompte monetari de 10€ a 100€", d_es: "Resta un cupón de descuento de 10 unidades sobre un precio base de 100.", d_va: "Resta un cupó de descompte de 10 unitats sobre un preu base de 100.", val: "90", code: "int precio = 100;\nint desc = 10;\nSystem.out.println(precio - desc);" },
+      { name: "comprobarMayoriaEdad", t_es: "Comprobar mayoría de edad legal (edad >= 18)", t_va: "Comprovar majoria d'edat legal (edat >= 18)", d_es: "Evalúa con una sentencia condicional if si la persona con edad 20 supera el umbral de 18 años.", d_va: "Avalua amb una sentència condicional if si la persona amb edat 20 supera el llindar de 18 anys.", val: "Mayor de edad", code: "int edad = 20;\nif (edad >= 18) {\n  System.out.println(\"Mayor de edad\");\n}" },
+      { name: "determinarSignoPositivo", t_es: "Determinar si el valor es estrictamente positivo", t_va: "Determinar si el valor és estrictament positiu", d_es: "Comprueba con el operador relacional > si el entero es mayor que cero e imprime 'Positivo'.", d_va: "Comprova amb l'operador relacional > si l'enter és major que zero i mostra 'Positiu'.", val: "Positivo", code: "int n = 8;\nif (n > 0) {\n  System.out.println(\"Positivo\");\n}" },
+      { name: "verificarParidadConModulo", t_es: "Verificar si un número es par con módulo 2", t_va: "Verificar si un número és parell amb mòdul 2", d_es: "Usa la expresión (num % 2 == 0) para verificar que el valor 14 no tiene resto al dividirse entre dos.", d_va: "Usa l'expressió (num % 2 == 0) per a verificar que el valor 14 no té residu en dividir-se entre dos.", val: "Es par", code: "int num = 14;\nif (num % 2 == 0) {\n  System.out.println(\"Es par\");\n}" },
+      { name: "incrementarPuntosAsignacion", t_es: "Incrementar puntuación con operador +=", t_va: "Incrementar puntuació amb operador +=", d_es: "Suma 5 unidades directamente sobre la variable 'puntos' usando la asignación combinada +=.", d_va: "Suma 5 unitats directament sobre la variable 'punts' utilitzant l'assignació combinada +=.", val: "15", code: "int puntos = 10;\npuntos += 5;\nSystem.out.println(puntos);" },
+      { name: "convertirHorasAMinutos", t_es: "Conversión temporal de horas a minutos", t_va: "Conversió temporal d'hores a minuts", d_es: "Multiplica el valor de 3 horas por el factor constante de conversión de 60 minutos.", d_va: "Multiplica el valor de 3 hores pel factor constant de conversió de 60 minuts.", val: "180", code: "int horas = 3;\nSystem.out.println(horas * 60);" },
+      { name: "calcularImporteArticulos", t_es: "Cálculo de importe total de artículos", t_va: "Càlcul d'import total d'articles", d_es: "Multiplica el precio unitario de 15 por la cantidad comprada de 3 unidades.", d_va: "Multiplica el preu unitari de 15 per la quantitat adquirida de 3 unitats.", val: "45", code: "int precioUnidad = 15;\nint unidades = 3;\nSystem.out.println(precioUnidad * unidades);" },
+      { name: "calcularPerimetroCuadrado", t_es: "Perímetro de cuadrado regular (lado 7)", t_va: "Perímetre de quadrat regular (costat 7)", d_es: "Calcula el perímetro sumando los 4 lados iguales o multiplicando lado * 4.", d_va: "Calcula el perímetre sumant els 4 costats iguals o multiplicant costat * 4.", val: "28", code: "int lado = 7;\nSystem.out.println(lado * 4);" },
+      { name: "calcularDobleNumero", t_es: "Obtención del doble de una cantidad", t_va: "Obtenció del doble d'una quantitat", d_es: "Calcula el duplo del número 25 multiplicándolo por dos.", d_va: "Calcula el doble del número 25 multiplicant-lo per dos.", val: "50", code: "int n = 25;\nSystem.out.println(n * 2);" },
+      { name: "calcularTripleNumero", t_es: "Obtención del triple de una cantidad", t_va: "Obtenció del triple d'una quantitat", d_es: "Multiplica el valor 12 por 3 para obtener el triple matemático.", d_va: "Multiplica el valor 12 per 3 per a obtindre el triple matemàtic.", val: "36", code: "int n = 12;\nSystem.out.println(n * 3);" },
+      { name: "calcularMitadEntera", t_es: "Cálculo de la mitad entera de una cantidad", t_va: "Càlcul de la meitat sencera d'una quantitat", d_es: "Divide el valor 40 entre 2 para obtener su semidiferencia entera.", d_va: "Divideix el valor 40 entre 2 per a obtindre la seua meitat sencera.", val: "20", code: "int n = 40;\nSystem.out.println(n / 2);" },
+      { name: "calcularCuadradoNumero", t_es: "Potencia al cuadrado de un entero (9^2)", t_va: "Potència al quadrat d'un enter (9^2)", d_es: "Eleva el entero 9 al cuadrado multiplicándolo por sí mismo.", d_va: "Eleva l'enter 9 al quadrat multiplicant-lo per ell mateix.", val: "81", code: "int n = 9;\nSystem.out.println(n * n);" },
+      { name: "calcularCuboNumero", t_es: "Potencia al cubo de un entero (4^3)", t_va: "Potència al cub d'un enter (4^3)", d_es: "Multiplica el valor 4 tres veces por sí mismo para computar su cubo.", d_va: "Multiplica el valor 4 tres vegades per ell mateix per a computar el seu cub.", val: "64", code: "int n = 4;\nSystem.out.println(n * n * n);" },
+      { name: "intercambiarVariablesAux", t_es: "Intercambio de dos variables con variable temporal", t_va: "Intercanvi de dues variables amb variable temporal", d_es: "Guarda 'a' en una variable 'temp' para trasladar el valor de 'b' sin perder información.", d_va: "Guarda 'a' en una variable 'temp' per a traslladar el valor de 'b' sense perdre informació.", val: "b: 10", code: "int a = 10;\nint b = 20;\nint temp = a;\na = b;\nb = temp;\nSystem.out.println(\"b: \" + b);" },
+      { name: "obtenerMayorDeDos", t_es: "Identificar el valor mayor entre dos números", t_va: "Identificar el valor major entre dos números", d_es: "Compara si 'x' es mayor que 'y' e imprime el ganador usando una condición if/else.", d_va: "Compara si 'x' és major que 'y' i mostra el guanyador emprant una condició if/else.", val: "30", code: "int x = 30;\nint y = 15;\nif (x > y) System.out.println(x); else System.out.println(y);" },
+      { name: "obtenerMenorDeDos", t_es: "Identificar el valor menor entre dos números", t_va: "Identificar el valor menor entre dos números", d_es: "Compara dos cantidades numéricas e imprime la que posee el menor valor relativo.", d_va: "Compara dues quantitats numèriques i mostra la que posseeix el menor valor relatiu.", val: "15", code: "int x = 30;\nint y = 15;\nif (x < y) System.out.println(x); else System.out.println(y);" },
+      { name: "comprobarIgualdadNumerica", t_es: "Comprobar igualdad estricta con operador ==", t_va: "Comprovar igualtat estricta amb operador ==", d_es: "Verifica si dos variables tienen exactamente el mismo contenido numérico.", d_va: "Verifica si dues variables tenen exactament el mateix contingut numèric.", val: "Iguales", code: "int a = 8;\nint b = 8;\nif (a == b) System.out.println(\"Iguales\");" },
+      { name: "calcularDiasEnSemanas", t_es: "Conversión de semanas naturales a días", t_va: "Conversió de setmanes naturals a dies", d_es: "Convierte 4 semanas en su equivalente en días multiplicando por 7.", d_va: "Converteix 4 setmanes en el seu equivalent en dies multiplicant per 7.", val: "28", code: "int semanas = 4;\nSystem.out.println(semanas * 7);" },
+      { name: "calcularMinutosEnSegundos", t_es: "Conversión de minutos a segundos", t_va: "Conversió de minuts a segons", d_es: "Multiplica una duración de 5 minutos por 60 para expresar el tiempo en segundos.", d_va: "Multiplica una duració de 5 minuts per 60 per a expressar el temps en segons.", val: "300", code: "int minutos = 5;\nSystem.out.println(minutos * 60);" },
+      { name: "evaluarAprobadoSimple", t_es: "Evaluar aprobado académico (nota >= 5)", t_va: "Avaluar aprovat acadèmic (nota >= 5)", d_es: "Determina si una nota de 7 supera la calificación mínima exigida de 5.", d_va: "Determina si una nota de 7 supera la qualificació mínima exigida de 5.", val: "Aprobado", code: "int nota = 7;\nif (nota >= 5) System.out.println(\"Aprobado\");" },
+      { name: "evaluarSuspensoSimple", t_es: "Evaluar suspenso académico (nota < 5)", t_va: "Avaluar suspens acadèmic (nota < 5)", d_es: "Comprueba si una calificación de 4 se encuentra por debajo de 5.", d_va: "Comprova si una qualificació de 4 es troba per sota de 5.", val: "Suspenso", code: "int nota = 4;\nif (nota < 5) System.out.println(\"Suspenso\");" },
+      { name: "evaluarNotaSobresaliente", t_es: "Distinguir calificación de sobresaliente (>= 9)", t_va: "Distingir qualificació d'excel·lent (>= 9)", d_es: "Comprueba si un expediente alcanza la franja de excelencia con nota igual o superior a 9.", d_va: "Comprova si un expedient assoleix la franja d'excel·lència amb nota igual o superior a 9.", val: "Sobresaliente", code: "int nota = 9;\nif (nota >= 9) System.out.println(\"Sobresaliente\");" },
+      { name: "calcularIvaGeneral21", t_es: "Cálculo de importe de IVA general al 21%", t_va: "Càlcul d'import d'IVA general al 21%", d_es: "Multiplica una base imponible de 200 por 21 y divide entre 100 para extraer la cuota tributaria.", d_va: "Multiplica una base imposable de 200 per 21 i divideix entre 100 per a extraure la quota tributària.", val: "42", code: "int base = 200;\nSystem.out.println((base * 21) / 100);" },
+      { name: "calcularPrecioConIvaIncluido", t_es: "Suma de precio base más cuota de IVA", t_va: "Suma de preu base més quota d'IVA", d_es: "Calcula el importe final sumando la base imponible de 100 y su IVA de 21.", d_va: "Calcula l'import final sumant la base imposable de 100 i el seu IVA de 21.", val: "121", code: "int base = 100;\nint iva = 21;\nSystem.out.println(base + iva);" },
+      { name: "comprobarRangoNotasValidas", t_es: "Verificar si la nota está acotada entre 0 y 10", t_va: "Verificar si la nota està fitada entre 0 i 10", d_es: "Usa el operador lógico AND (&&) para validar que la calificación está en rango oficial.", d_va: "Usa l'operador lògic AND (&&) per a validar que la qualificació està en rang oficial.", val: "Valida", code: "int nota = 8;\nif (nota >= 0 && nota <= 10) System.out.println(\"Valida\");" },
+      { name: "comprobarTemperaturaFiebre", t_es: "Detección de estado febril (temperatura >= 38)", t_va: "Detecció d'estat febril (temperatura >= 38)", d_es: "Evalúa si una lectura clínica de 39 grados supera el umbral de fiebre con una condición simple.", d_va: "Avalua si una lectura clínica de 39 graus supera el llindar de febre amb una condició simple.", val: "Fiebre", code: "int temp = 39;\nif (temp >= 38) System.out.println(\"Fiebre\");" },
+      { name: "determinarNumeroCero", t_es: "Comprobar si el valor es neutro cero", t_va: "Comprovar si el valor és neutre zero", d_es: "Valida con un condicional if si la variable contiene exactamente el número 0.", d_va: "Valida amb un condicional if si la variable conté exactament el número 0.", val: "Cero", code: "int num = 0;\nif (num == 0) System.out.println(\"Cero\");" },
+      { name: "calcularDistanciaRecorrida", t_es: "Cálculo cinemático de distancia (velocidad * tiempo)", t_va: "Càlcul cinemàtic de distància (velocitat * temps)", d_es: "Aplica la fórmula física d = v * t con velocidad constante de 80 km/h durante 2 horas.", d_va: "Aplica la fórmula física d = v * t amb velocitat constant de 80 km/h durant 2 hores.", val: "160", code: "int v = 80;\nint t = 2;\nSystem.out.println(v * t);" },
+      { name: "calcularMediaDosExamenes", t_es: "Media aritmética simple de dos exámenes", t_va: "Mitjana aritmètica simple de dos exàmens", d_es: "Calcula el promedio sumando las notas 6 y 8 y dividiendo el resultado entre 2.", d_va: "Calcula la mitjana sumant les notes 6 i 8 i dividint el resultat entre 2.", val: "7", code: "int n1 = 6;\nint n2 = 8;\nSystem.out.println((n1 + n2) / 2);" },
+      { name: "calcularMediaTresParciales", t_es: "Promedio de tres parciales (5, 6 y 7)", t_va: "Promig de tres parcials (5, 6 i 7)", d_es: "Suma tres calificaciones trimestrales y aplica división entre 3 usando paréntesis.", d_va: "Suma tres qualificacions trimestrals i aplica divisió entre 3 emprant parèntesis.", val: "6", code: "int a = 5, b = 6, c = 7;\nSystem.out.println((a + b + c) / 3);" },
+      { name: "comprobarLongitudTexto", t_es: "Obtener número de caracteres de un String", t_va: "Obtindre nombre de caràcters d'un String", d_es: "Invoca el método .length() sobre el texto 'Java' para conocer su tamaño exacto.", d_va: "Invoca el mètode .length() sobre el text 'Java' per a conéixer la seua grandària exacta.", val: "4", code: "String txt = \"Java\";\nSystem.out.println(txt.length());" },
+      { name: "obtenerPrimerCaracter", t_es: "Extraer el carácter inicial de un texto con charAt(0)", t_va: "Extraure el caràcter inicial d'un text amb charAt(0)", d_es: "Usa el método charAt con índice cero para recuperar la primera letra del String 'DAM'.", d_va: "Usa el mètode charAt amb índex zero per a recuperar la primera lletra de l'String 'DAM'.", val: "D", code: "String ciclo = \"DAM\";\nSystem.out.println(ciclo.charAt(0));" },
+      { name: "convertirAMayusculas", t_es: "Transformar cadena a mayúsculas con toUpperCase()", t_va: "Transformar cadena a majúscules amb toUpperCase()", d_es: "Convierte el identificador 'dam' íntegramente a mayúsculas usando el método de clase String.", d_va: "Converteix l'identificador 'dam' íntegrament a majúscules emprant el mètode de classe String.", val: "DAM", code: "String ciclo = \"dam\";\nSystem.out.println(ciclo.toUpperCase());" },
+      { name: "convertirAMinusculas", t_es: "Transformar cadena a minúsculas con toLowerCase()", t_va: "Transformar cadena a minúscules amb toLowerCase()", d_es: "Normaliza la cadena 'JAVA' a formato minúsculo.", d_va: "Normalitza la cadena 'JAVA' a format minúscul.", val: "java", code: "String lang = \"JAVA\";\nSystem.out.println(lang.toLowerCase());" },
+      { name: "concatenarNombreYApellidos", t_es: "Composición de nombre completo con espacio", t_va: "Composició de nom complet amb espai", d_es: "Une el nombre 'Ana' y el apellido 'Gomis' intercalando un separador en blanco.", d_va: "Uneix el nom 'Ana' i el cognom 'Gomis' intercalant un separador en blanc.", val: "Ana Gomis", code: "String nom = \"Ana\";\nString ape = \"Gomis\";\nSystem.out.println(nom + \" \" + ape);" },
+      { name: "verificarTextoVacio", t_es: "Comprobar si una cadena no contiene caracteres", t_va: "Comprovar si una cadena no conté caràcters", d_es: "Evalúa con el método .isEmpty() si la cadena carece de caracteres.", d_va: "Avalua amb el mètode .isEmpty() si la cadena no té caràcters.", val: "true", code: "String vacio = \"\";\nSystem.out.println(vacio.isEmpty());" },
+      { name: "evaluarDescuentoMayorista", t_es: "Condición de volumen de pedido (unidades > 50)", t_va: "Condició de volum de comanda (unitats > 50)", d_es: "Verifica si una compra de 60 paquetes califica para tarifas preferentes.", d_va: "Verifica si una compra de 60 paquets qualifica per a tarifes preferents.", val: "Descuento", code: "int cant = 60;\nif (cant > 50) System.out.println(\"Descuento\");" },
+      { name: "calcularCapacidadAlmacenamiento", t_es: "Conversión de Gigabytes a Megabytes", t_va: "Conversió de Gigabytes a Megabytes", d_es: "Calcula cuántos Megabytes corresponden a 2 Gigabytes multiplicando por 1024.", d_va: "Calcula quants Megabytes corresponen a 2 Gigabytes multiplicant per 1024.", val: "2048", code: "int gb = 2;\nSystem.out.println(gb * 1024);" },
+      { name: "calcularSemanasEnMes", t_es: "Estimación entera de semanas por mes (28 días)", t_va: "Estimació sencera de setmanes per mes (28 dies)", d_es: "Divide un bloque de 28 días entre 7 para conocer el número exacto de semanas.", d_va: "Divideix un bloc de 28 dies entre 7 per a conéixer el nombre exacte de setmanes.", val: "4", code: "int dias = 28;\nSystem.out.println(dias / 7);" },
+      { name: "comprobarDivisibilidadEntreCinco", t_es: "Comprobar si un número es divisible entre 5", t_va: "Comprovar si un número és divisible entre 5", d_es: "Usa el residuo % 5 sobre 35 para comprobar que la división es exacta sin resto.", d_va: "Usa el residu % 5 sobre 35 per a comprovar que la divisió és exacta sense residu.", val: "Divisible", code: "int n = 35;\nif (n % 5 == 0) System.out.println(\"Divisible\");" },
+      { name: "calcularDiferenciaAbsoluta", t_es: "Diferencia no negativa entre dos valores", t_va: "Diferència no negativa entre dos valors", d_es: "Resta el valor menor del mayor para garantizar que el resultado siempre sea positivo.", d_va: "Resta el valor menor del major per a garantir que el resultat sempre siga positiu.", val: "20", code: "int a = 50;\nint b = 30;\nSystem.out.println(a - b);" },
+      { name: "comprobarAccesoSistema", t_es: "Validar credencial con flag booleano de acceso", t_va: "Validar credencial amb flag booleà d'accés", d_es: "Evalúa si una variable booleana 'autorizado' permite imprimir el mensaje de bienvenida.", d_va: "Avalua si una variable booleana 'autoritzat' permet imprimir el missatge de benvinguda.", val: "Acceso OK", code: "boolean autorizado = true;\nif (autorizado) System.out.println(\"Acceso OK\");" }
+    ];
+
+    const TOPICS_MED = [
+      { name: "tablaMultiplicarDelCinco", t_es: "Generación de tabla del 5 con bucle for", t_va: "Generació de taula del 5 amb bucle for", d_es: "Itera un índice i desde 1 hasta 3 multiplicando 5 en cada ciclo.", d_va: "Itera un índex i des d'1 fins a 3 multiplicant 5 en cada cicle.", val: "5\n10\n15", code: "for (int i = 1; i <= 3; i++) {\n  System.out.println(5 * i);\n}" },
+      { name: "sumatorioRangoAcumulado", t_es: "Sumatorio acumulado del 1 al 4", t_va: "Sumatori acumulat de l'1 al 4", d_es: "Acumula en una variable suma el valor de i en cada iteración del 1 al 4.", d_va: "Acumula en una variable suma el valor d'i en cada iteració de l'1 al 4.", val: "10", code: "int suma = 0;\nfor (int i = 1; i <= 4; i++) {\n  suma += i;\n}\nSystem.out.println(suma);" },
+      { name: "cuentaAtrasBucleWhile", t_es: "Cuenta atrás regresiva de 3 a 1 con while", t_va: "Compte enrere regressiu de 3 a 1 amb while", d_es: "Imprime el contador e increméntalo de forma decreciente con c-- mientras sea positivo.", d_va: "Mostra el comptador i decrementa'l de forma regressiva amb c-- mentre siga positiu.", val: "3\n2\n1", code: "int c = 3;\nwhile (c > 0) {\n  System.out.println(c);\n  c--;\n}" },
+      { name: "recorrerArrayForEach", t_es: "Recorrido de array con bucle for-each", t_va: "Recorregut de matriu amb bucle for-each", d_es: "Imprime secuencialmente los elementos de un array de enteros {10, 20, 30}.", d_va: "Mostra seqüencialment els elements d'una matriu d'enters {10, 20, 30}.", val: "10\n20\n30", code: "int[] nums = {10, 20, 30};\nfor (int n : nums) {\n  System.out.println(n);\n}" },
+      { name: "calcularFactorialDeCuatro", t_es: "Cálculo iterativo del factorial de 4 (4!)", t_va: "Càlcul iteratiu del factorial de 4 (4!)", d_es: "Multiplica sucesivamente 1 * 2 * 3 * 4 en una variable acumuladora factorial.", d_va: "Multiplica successivament 1 * 2 * 3 * 4 en una variable acumuladora factorial.", val: "24", code: "int fact = 1;\nfor (int i = 1; i <= 4; i++) {\n  fact *= i;\n}\nSystem.out.println(fact);" },
+      { name: "contarNumerosParesArray", t_es: "Conteo de elementos pares en un array", t_va: "Comptatge d'elements parells en una matriu", d_es: "Recorre una lista de enteros y contabiliza cuántos cumplen la condición (x % 2 == 0).", d_va: "Recorre una llista d'enters i comptabilitza quants compleixen la condició (x % 2 == 0).", val: "2", code: "int[] arr = {1, 2, 4, 5};\nint p = 0;\nfor (int x : arr) if (x % 2 == 0) p++;\nSystem.out.println(p);" },
+      { name: "buscarMaximoEnArray", t_es: "Búsqueda del valor máximo en una colección", t_va: "Cerca del valor màxim en una col·lecció", d_es: "Inicializa el máximo en la primera posición y compáralo con cada elemento para actualizarlo.", d_va: "Inicialitza el màxim en la primera posició i compara'l amb cada element per a actualitzar-lo.", val: "9", code: "int[] d = {3, 9, 2};\nint max = d[0];\nfor (int v : d) if (v > max) max = v;\nSystem.out.println(max);" },
+      { name: "buscarMinimoEnArray", t_es: "Búsqueda del valor mínimo en una colección", t_va: "Cerca del valor mínim en una col·lecció", d_es: "Inicializa con d[0] e itera actualizando la variable 'min' cuando encuentres un valor menor.", d_va: "Inicialitza amb d[0] i itera actualitzant la variable 'min' quan trobes un valor menor.", val: "2", code: "int[] d = {3, 9, 2};\nint min = d[0];\nfor (int v : d) if (v < min) min = v;\nSystem.out.println(min);" },
+      { name: "calcularMediaAritmeticaArray", t_es: "Cálculo de la media aritmética de un array", t_va: "Càlcul de la mitjana aritmètica d'una matriu", d_es: "Suma todos los elementos de {4, 6, 8} y divide entre el tamaño arr.length.", d_va: "Suma tots els elements de {4, 6, 8} i divideix entre la grandària arr.length.", val: "6", code: "int[] notas = {4, 6, 8};\nint sum = 0;\nfor (int n : notas) sum += n;\nSystem.out.println(sum / notas.length);" },
+      { name: "filtrarMayoresQueUmbral", t_es: "Contar elementos que superan un umbral fijado", t_va: "Comptar elements que superen un llindar fixat", d_es: "Filtra en el array cuántos valores son estrictamente superiores al valor 10.", d_va: "Filtra en la matriu quants valors són estrictament superiors al valor 10.", val: "2", code: "int[] datos = {5, 12, 18, 9};\nint c = 0;\nfor (int v : datos) if (v > 10) c++;\nSystem.out.println(c);" },
+      { name: "invertirCadenaIterativa", t_es: "Inversión de caracteres de un texto", t_va: "Inversió de caràcters d'un text", d_es: "Recorre el texto desde su último carácter (length() - 1) hasta el primero para invertirlo.", d_va: "Recorre el text des de l'últim caràcter (length() - 1) fins al primer per a invertir-lo.", val: "DAM", code: "String t = \"MAD\";\nString inv = \"\";\nfor (int i = t.length() - 1; i >= 0; i--) inv += t.charAt(i);\nSystem.out.println(inv);" },
+      { name: "contarVocalesCadena", t_es: "Conteo de vocales presentes en un texto", t_va: "Comptatge de vocals presents en un text", d_es: "Evalúa cada carácter comprobando si pertenece al conjunto de vocales 'aeiou'.", d_va: "Avalua cada caràcter comprovant si pertany al conjunt de vocals 'aeiou'.", val: "2", code: "String s = \"java\";\nint v = 0;\nfor (char c : s.toCharArray()) if (\"aeiou\".indexOf(c) >= 0) v++;\nSystem.out.println(v);" },
+      { name: "busquedaLinealIndice", t_es: "Búsqueda secuencial de la posición de un valor", t_va: "Cerca seqüencial de la posició d'un valor", d_es: "Recorre con índice i hasta encontrar el valor objetivo 25 y devuelve su posición.", d_va: "Recorre amb índex i fins a trobar el valor objectiu 25 i retorna la seua posició.", val: "1", code: "int[] l = {10, 25, 40};\nint pos = -1;\nfor (int i = 0; i < l.length; i++) if (l[i] == 25) pos = i;\nSystem.out.println(pos);" },
+      { name: "verificarPalindromo", t_es: "Verificación de palabra palíndroma", t_va: "Verificació de paraula palíndroma", d_es: "Comprueba si la cadena 'ana' coincide de forma idéntica con su reflejo invertido.", d_va: "Comprova si la cadena 'ana' coincideix de forma idèntica amb el seu reflex invertit.", val: "Palindromo", code: "String w = \"ana\";\nString r = new StringBuilder(w).reverse().toString();\nif (w.equals(r)) System.out.println(\"Palindromo\");" },
+      { name: "generarSerieFibonacci", t_es: "Cálculo de los primeros términos de Fibonacci", t_va: "Càlcul dels primers termes de Fibonacci", d_es: "Genera la serie calculando cada nuevo elemento como la suma de los dos anteriores (a + b).", d_va: "Genera la sèrie calculant cada nou element com la suma dels dos anteriors (a + b).", val: "2", code: "int a = 0, b = 1;\nfor (int i = 2; i <= 3; i++) { int c = a + b; a = b; b = c; }\nSystem.out.println(b);" },
+      { name: "determinarNumeroPrimo", t_es: "Comprobación de primalidad matemática", t_va: "Comprovació de primalitat matemàtica", d_es: "Verifica que el número 7 no tiene divisores entre 2 y su raíz cuadrada.", d_va: "Verifica que el número 7 no té divisors entre 2 i la seua arrel quadrada.", val: "Primo", code: "int n = 7;\nboolean pr = true;\nfor (int i = 2; i < n; i++) if (n % i == 0) pr = false;\nif (pr) System.out.println(\"Primo\");" },
+      { name: "seleccionarDiaSwitch", t_es: "Mapeo de número de día a texto con switch", t_va: "Mapeig de número de dia a text amb switch", d_es: "Utiliza una estructura de selección múltiple switch para traducir el valor 1 en 'Lunes'.", d_va: "Utilitza una estructura de selecció múltiple switch per a traduir el valor 1 en 'Dilluns'.", val: "Lunes", code: "int d = 1;\nswitch (d) {\n  case 1: System.out.println(\"Lunes\"); break;\n  default: System.out.println(\"Otro\");\n}" },
+      { name: "duplicarElementosArray", t_es: "Transformación lineal de valores en un array", t_va: "Transformació lineal de valors en una matriu", d_es: "Multiplica por dos cada posición del array y muestra el primer elemento transformado.", d_va: "Multiplica per dos cada posició de la matriu i mostra el primer element transformat.", val: "4", code: "int[] arr = {2, 4};\narr[0] *= 2;\nSystem.out.println(arr[0]);" },
+      { name: "concatenarArrayDeCadenas", t_es: "Unión de palabras de un array en una frase", t_va: "Unió de paraules d'una matriu en una frase", d_es: "Concatena iterativamente los términos del array intercalando espacios.", d_va: "Concatena iterativament els termes de la matriu intercalant espais.", val: "Hola DAM", code: "String[] w = {\"Hola\", \"DAM\"};\nSystem.out.println(w[0] + \" \" + w[1]);" },
+      { name: "calcularProductoAcumulado", t_es: "Productorio acumulado de enteros impares", t_va: "Productori acumulat d'enters imparells", d_es: "Multiplica secuencialmente 1 * 3 * 5 para calcular su productorio acumulado.", d_va: "Multiplica seqüencialment 1 * 3 * 5 per a calcular el seu productori acumulat.", val: "15", code: "int p = 1;\nint[] imp = {1, 3, 5};\nfor (int x : imp) p *= x;\nSystem.out.println(p);" }
+    ];
+
+    const TOPICS_HARD = [
+      { name: "instanciarObjetoAlumno", t_es: "Instanciación y acceso a getters de clase Alumno", t_va: "Instanciació i accés a getters de classe Alumne", d_es: "Instancia un objeto Alumno pasándole nombre y ciclo y recupera su estado con getters.", d_va: "Instancia un objecte Alumne passant-li nom i cicle i recupera el seu estat amb getters.", val: "Pepe: DAM", code: "Alumno a = new Alumno(\"Pepe\", \"DAM\");\nSystem.out.println(a.getNombre() + \": \" + a.getCiclo());" },
+      { name: "controlarExcepcionDivisionPorCero", t_es: "Captura de ArithmeticException con try-catch", t_va: "Captura d'ArithmeticException amb try-catch", d_es: "Encapsula una división entre 0 en un bloque try y gestiona el error en el catch.", d_va: "Encapsula una divisió entre 0 en un bloc try i gestiona l'error en el catch.", val: "Error controlado", code: "try {\n  int div = 10 / 0;\n} catch (ArithmeticException e) {\n  System.out.println(\"Error controlado\");\n}" },
+      { name: "recorrerMatrizBidimensional", t_es: "Recorrido bidimensional de matriz 2x2 con bucles anidados", t_va: "Recorregut bidimensional de matriu 2x2 amb bucles niats", d_es: "Usa dos bucles anidados para recorrer filas y columnas de una matriz bidimensional.", d_va: "Usa dos bucles niats per a recórrer files i columnes d'una matriu bidimensional.", val: "1\n2\n3\n4", code: "int[][] m = {{1, 2}, {3, 4}};\nfor (int[] f : m) for (int v : f) System.out.println(v);" },
+      { name: "busquedaBinariaVectorOrdenado", t_es: "Búsqueda dicotómica en array ordenado", t_va: "Cerca dicotòmica en matriu ordenada", d_es: "Divide el espacio de búsqueda por la mitad en cada paso evaluando el elemento central.", d_va: "Divideix l'espai de cerca per la meitat en cada pas avaluant l'element central.", val: "2", code: "int[] arr = {2, 4, 6, 8};\nint l = 0, r = arr.length - 1, pos = -1;\nwhile (l <= r) {\n  int m = (l + r) / 2;\n  if (arr[m] == 6) { pos = m; break; }\n  if (arr[m] < 6) l = m + 1; else r = m - 1;\n}\nSystem.out.println(pos);" },
+      { name: "algoritmoOrdenacionBurbuja", t_es: "Ordenación de array con algoritmo Bubble Sort", t_va: "Ordenació de matriu amb algorisme Bubble Sort", d_es: "Compara pares de elementos adyacentes e intercambia sus posiciones si están desordenados.", d_va: "Compara parells d'elements adjacents i intercanvia les seues posicions si estan desordenats.", val: "1\n2\n3", code: "int[] a = {3, 1, 2};\nfor (int i = 0; i < a.length; i++) {\n  for (int j = 0; j < a.length - 1; j++) {\n    if (a[j] > a[j + 1]) { int t = a[j]; a[j] = a[j + 1]; a[j + 1] = t; }\n  }\n}\nfor (int v : a) System.out.println(v);" },
+      { name: "validarLetraNifDni", t_es: "Validación algorítmica de la letra del DNI/NIF", t_va: "Validació algorísmica de la lletra del DNI/NIF", d_es: "Aplica el algoritmo oficial DNI % 23 para mapear el resto con la tabla de letras de control.", d_va: "Aplica l'algorisme oficial DNI % 23 per a mapejar el residu amb la taula de lletres de control.", val: "T", code: "String l = \"TRWAGMYFPDXBNJZSQVHLCKE\";\nint dni = 0;\nSystem.out.println(l.charAt(dni % 23));" },
+      { name: "encapsulamientoCuentaBancaria", t_es: "Encapsulación y validación de saldo en Cuenta", t_va: "Encapsulació i validació de saldo en Compte", d_es: "Comprueba que la retirada no exceda el saldo disponible mediante un método de negocio.", d_va: "Comprova que la retirada no excedisca el saldo disponible mitjançant un mètode de negoci.", val: "70", code: "int saldo = 100;\nint retiro = 30;\nif (saldo >= retiro) saldo -= retiro;\nSystem.out.println(saldo);" },
+      { name: "calcularTrazaMatrizCuadrada", t_es: "Suma de elementos de la diagonal principal (Traza)", t_va: "Suma d'elements de la diagonal principal (Traça)", d_es: "Suma los elementos m[i][i] donde el índice de fila y columna coinciden.", d_va: "Suma els elements m[i][i] on l'índex de fila i columna coincideixen.", val: "8", code: "int[][] m = {{3, 1}, {2, 5}};\nint traza = m[0][0] + m[1][1];\nSystem.out.println(traza);" },
+      { name: "simularEstructuraPilaStack", t_es: "Comportamiento LIFO de una Pila (Stack)", t_va: "Comportament LIFO d'una Pila (Stack)", d_es: "Apila elementos y desapila el último insertado respetando la política Last-In First-Out.", d_va: "Apila elements i desapila l'últim inserit respectant la política Last-In First-Out.", val: "20", code: "java.util.Stack<Integer> s = new java.util.Stack<>();\ns.push(10); s.push(20);\nSystem.out.println(s.pop());" },
+      { name: "simularEstructuraColaQueue", t_es: "Comportamiento FIFO de una Cola (Queue)", t_va: "Comportament FIFO d'una Cua (Queue)", d_es: "Encola elementos y desencola el primero que entró respetando First-In First-Out.", d_va: "Encua elements i desencua el primer que va entrar respectant First-In First-Out.", val: "10", code: "java.util.Queue<Integer> q = new java.util.LinkedList<>();\nq.offer(10); q.offer(20);\nSystem.out.println(q.poll());" }
+    ];
+
+    /* ==========================================================================
+       CATÁLOGO DETALLADO Y REALISTA DE MÉTODOS PARA EL MICRO-EDITOR (JUNIT)
+       ========================================================================== */
+    const EDITOR_METHODS_EASY = [
+      { name: "esPar", ret: "boolean", params: "int n", body: "return n % 2 == 0;", tests: [{ call: "esPar(4)", args: [4], exp: true }, { call: "esPar(7)", args: [7], exp: false }, { call: "esPar(0)", args: [0], exp: true }], d_es: "Devuelve true si el número n es divisible por 2, false en caso contrario.", d_va: "Retorna true si el número n és divisible per 2, false en cas contrari." },
+      { name: "esMayorDeEdad", ret: "boolean", params: "int edad", body: "return edad >= 18;", tests: [{ call: "esMayorDeEdad(18)", args: [18], exp: true }, { call: "esMayorDeEdad(15)", args: [15], exp: false }, { call: "esMayorDeEdad(22)", args: [22], exp: true }], d_es: "Devuelve true si la edad es igual o superior a 18 años.", d_va: "Retorna true si l'edat és igual o superior a 18 anys." },
+      { name: "sumar", ret: "int", params: "int a, int b", body: "return a + b;", tests: [{ call: "sumar(3, 5)", args: [3, 5], exp: 8 }, { call: "sumar(-2, 6)", args: [-2, 6], exp: 4 }, { call: "sumar(0, 0)", args: [0, 0], exp: 0 }], d_es: "Devuelve la suma aritmética de a y b.", d_va: "Retorna la suma aritmètica d'a i b." },
+      { name: "restar", ret: "int", params: "int a, int b", body: "return a - b;", tests: [{ call: "restar(10, 4)", args: [10, 4], exp: 6 }, { call: "restar(5, 8)", args: [5, 8], exp: -3 }], d_es: "Devuelve la resta de a menos b.", d_va: "Retorna la resta d'a menys b." },
+      { name: "multiplicar", ret: "int", params: "int a, int b", body: "return a * b;", tests: [{ call: "multiplicar(4, 3)", args: [4, 3], exp: 12 }, { call: "multiplicar(7, 0)", args: [7, 0], exp: 0 }], d_es: "Devuelve el producto aritmético de a por b.", d_va: "Retorna el producte aritmètic d'a per b." },
+      { name: "areaRectangulo", ret: "int", params: "int base, int altura", body: "return base * altura;", tests: [{ call: "areaRectangulo(5, 4)", args: [5, 4], exp: 20 }, { call: "areaRectangulo(3, 8)", args: [3, 8], exp: 24 }], d_es: "Calcula el área del rectángulo multiplicando base por altura.", d_va: "Calcula l'àrea del rectangle multiplicant base per alçària." },
+      { name: "esPositivo", ret: "boolean", params: "int n", body: "return n > 0;", tests: [{ call: "esPositivo(5)", args: [5], exp: true }, { call: "esPositivo(0)", args: [0], exp: false }, { call: "esPositivo(-3)", args: [-3], exp: false }], d_es: "Devuelve true si n es estrictamente mayor que 0.", d_va: "Retorna true si n és estrictament major que 0." },
+      { name: "obtenerMayor", ret: "int", params: "int a, int b", body: "return a > b ? a : b;", tests: [{ call: "obtenerMayor(10, 20)", args: [10, 20], exp: 20 }, { call: "obtenerMayor(15, 3)", args: [15, 3], exp: 15 }, { call: "obtenerMayor(5, 5)", args: [5, 5], exp: 5 }], d_es: "Devuelve el número mayor entre a y b.", d_va: "Retorna el número major entre a i b." },
+      { name: "obtenerMenor", ret: "int", params: "int a, int b", body: "return a < b ? a : b;", tests: [{ call: "obtenerMenor(10, 20)", args: [10, 20], exp: 10 }, { call: "obtenerMenor(4, 9)", args: [4, 9], exp: 4 }], d_es: "Devuelve el número menor entre a y b.", d_va: "Retorna el número menor entre a i b." },
+      { name: "calcularDoble", ret: "int", params: "int n", body: "return n * 2;", tests: [{ call: "calcularDoble(7)", args: [7], exp: 14 }, { call: "calcularDoble(-4)", args: [-4], exp: -8 }], d_es: "Devuelve el doble del valor n.", d_va: "Retorna el doble del valor n." },
+      { name: "calcularTriple", ret: "int", params: "int n", body: "return n * 3;", tests: [{ call: "calcularTriple(4)", args: [4], exp: 12 }, { call: "calcularTriple(10)", args: [10], exp: 30 }], d_es: "Devuelve el triple del valor n.", d_va: "Retorna el triple del valor n." },
+      { name: "calcularCuadrado", ret: "int", params: "int n", body: "return n * n;", tests: [{ call: "calcularCuadrado(6)", args: [6], exp: 36 }, { call: "calcularCuadrado(9)", args: [9], exp: 81 }], d_es: "Devuelve el cuadrado de n (n * n).", d_va: "Retorna el quadrat de n (n * n)." },
+      { name: "calcularCubo", ret: "int", params: "int n", body: "return n * n * n;", tests: [{ call: "calcularCubo(3)", args: [3], exp: 27 }, { call: "calcularCubo(2)", args: [2], exp: 8 }], d_es: "Devuelve el cubo de n (n * n * n).", d_va: "Retorna el cub de n (n * n * n)." },
+      { name: "estaAprobado", ret: "boolean", params: "double nota", body: "return nota >= 5.0;", tests: [{ call: "estaAprobado(4.9)", args: [4.9], exp: false }, { call: "estaAprobado(5.0)", args: [5.0], exp: true }, { call: "estaAprobado(8.5)", args: [8.5], exp: true }], d_es: "Devuelve true si la nota es igual o superior a 5.0.", d_va: "Retorna true si la nota és igual o superior a 5.0." },
+      { name: "horasAMinutos", ret: "int", params: "int horas", body: "return horas * 60;", tests: [{ call: "horasAMinutos(2)", args: [2], exp: 120 }, { call: "horasAMinutos(5)", args: [5], exp: 300 }], d_es: "Convierte el número de horas en minutos.", d_va: "Converteix el nombre d'hores en minuts." },
+      { name: "calcularIva21", ret: "double", params: "double base", body: "return base * 0.21;", tests: [{ call: "calcularIva21(100.0)", args: [100.0], exp: 21.0 }, { call: "calcularIva21(200.0)", args: [200.0], exp: 42.0 }], d_es: "Calcula la cuota del 21% de IVA sobre una base imponible.", d_va: "Calcula la quota del 21% d'IVA sobre una base imposable." },
+      { name: "precioConIva", ret: "double", params: "double base", body: "return base * 1.21;", tests: [{ call: "precioConIva(100.0)", args: [100.0], exp: 121.0 }, { call: "precioConIva(50.0)", args: [50.0], exp: 60.5 }], d_es: "Devuelve el precio final sumando la base imponible y el 21% de IVA.", d_va: "Retorna el preu final sumant la base imposable i el 21% d'IVA." },
+      { name: "sonIguales", ret: "boolean", params: "int a, int b", body: "return a == b;", tests: [{ call: "sonIguales(5, 5)", args: [5, 5], exp: true }, { call: "sonIguales(5, 6)", args: [5, 6], exp: false }], d_es: "Devuelve true si a y b son idénticos.", d_va: "Retorna true si a i b són idèntics." },
+      { name: "saludar", ret: "String", params: "String nombre", body: "return \"Hola, \" + nombre;", tests: [{ call: "saludar(\"Ana\")", args: ["Ana"], exp: "Hola, Ana" }, { call: "saludar(\"Carlos\")", args: ["Carlos"], exp: "Hola, Carlos" }], d_es: "Concatena 'Hola, ' con el nombre recibido.", d_va: "Concatena 'Hola, ' amb el nom rebut." },
+      { name: "longitudTexto", ret: "int", params: "String texto", body: "return texto.length();", tests: [{ call: "longitudTexto(\"Java\")", args: ["Java"], exp: 4 }, { call: "longitudTexto(\"DAM\")", args: ["DAM"], exp: 3 }, { call: "longitudTexto(\"\")", args: [""], exp: 0 }], d_es: "Devuelve la longitud en caracteres de la cadena.", d_va: "Retorna la longitud en caràcters de la cadena." }
+    ];
+
+    const EDITOR_METHODS_MED = [
+      { name: "sumatorio", ret: "int", params: "int n", body: "let s = 0; for (let i = 1; i <= n; i++) s += i; return s;", javaBody: "int s = 0;\n        for (int i = 1; i <= n; i++) {\n            s += i;\n        }\n        return s;", tests: [{ call: "sumatorio(4)", args: [4], exp: 10 }, { call: "sumatorio(5)", args: [5], exp: 15 }, { call: "sumatorio(1)", args: [1], exp: 1 }], d_es: "Calcula la suma acumulada desde 1 hasta n.", d_va: "Calcula la suma acumulada des d'1 fins a n." },
+      { name: "factorial", ret: "int", params: "int n", body: "let f = 1; for (let i = 1; i <= n; i++) f *= i; return f;", javaBody: "int f = 1;\n        for (int i = 1; i <= n; i++) {\n            f *= i;\n        }\n        return f;", tests: [{ call: "factorial(3)", args: [3], exp: 6 }, { call: "factorial(4)", args: [4], exp: 24 }, { call: "factorial(0)", args: [0], exp: 1 }], d_es: "Calcula el factorial de n (n!). Para n=0 o 1 devuelve 1.", d_va: "Calcula el factorial de n (n!). Per a n=0 o 1 retorna 1." },
+      { name: "contarVocales", ret: "int", params: "String texto", body: "let c = 0; for (let ch of texto.toLowerCase()) if ('aeiouáéíóú'.includes(ch)) c++; return c;", javaBody: "int count = 0;\n        String s = texto.toLowerCase();\n        for (int i = 0; i < s.length(); i++) {\n            char c = s.charAt(i);\n            if (\"aeiou\".indexOf(c) != -1) count++;\n        }\n        return count;", tests: [{ call: "contarVocales(\"dam\")", args: ["dam"], exp: 1 }, { call: "contarVocales(\"murcielago\")", args: ["murcielago"], exp: 5 }, { call: "contarVocales(\"xyz\")", args: ["xyz"], exp: 0 }], d_es: "Cuenta cuántas vocales tiene la cadena de texto (sin importar mayúsculas).", d_va: "Compta quantes vocals té la cadena de text (sense importar majúscules)." },
+      { name: "invertirCadena", ret: "String", params: "String texto", body: "return texto.split('').reverse().join('');", javaBody: "String inv = \"\";\n        for (int i = texto.length() - 1; i >= 0; i--) {\n            inv += texto.charAt(i);\n        }\n        return inv;", tests: [{ call: "invertirCadena(\"java\")", args: ["java"], exp: "avaj" }, { call: "invertirCadena(\"dam\")", args: ["dam"], exp: "mad" }], d_es: "Devuelve el texto con los caracteres invertidos.", d_va: "Retorna el text amb els caràcters invertits." },
+      { name: "esPalindromo", ret: "boolean", params: "String texto", body: "let clean = texto.toLowerCase().replace(/\\s+/g, ''); return clean === clean.split('').reverse().join('');", javaBody: "String s = texto.toLowerCase();\n        String inv = \"\";\n        for (int i = s.length() - 1; i >= 0; i--) inv += s.charAt(i);\n        return s.equals(inv);", tests: [{ call: "esPalindromo(\"radar\")", args: ["radar"], exp: true }, { call: "esPalindromo(\"hola\")", args: ["hola"], exp: false }, { call: "esPalindromo(\"ana\")", args: ["ana"], exp: true }], d_es: "Determina si una palabra se lee igual de izquierda a derecha que de derecha a izquierda.", d_va: "Determina si una paraula es llegeix igual d'esquerra a dreta que de dreta a esquerra." },
+      { name: "esPrimo", ret: "boolean", params: "int n", body: "if (n < 2) return false; for (let i = 2; i * i <= n; i++) if (n % i === 0) return false; return true;", javaBody: "if (n < 2) return false;\n        for (int i = 2; i * i <= n; i++) {\n            if (n % i == 0) return false;\n        }\n        return true;", tests: [{ call: "esPrimo(7)", args: [7], exp: true }, { call: "esPrimo(4)", args: [4], exp: false }, { call: "esPrimo(13)", args: [13], exp: true }, { call: "esPrimo(1)", args: [1], exp: false }], d_es: "Determina si un entero n es un número primo.", d_va: "Determina si un enter n és un número primer." },
+      { name: "contarParesEnArray", ret: "int", params: "int[] nums", body: "return nums.filter(x => x % 2 === 0).length;", javaBody: "int count = 0;\n        for (int x : nums) {\n            if (x % 2 == 0) count++;\n        }\n        return count;", tests: [{ call: "contarParesEnArray([1, 2, 3, 4, 6])", args: [[1, 2, 3, 4, 6]], exp: 3 }, { call: "contarParesEnArray([1, 3, 5])", args: [[1, 3, 5]], exp: 0 }], d_es: "Cuenta cuántos elementos pares existen en el array de enteros.", d_va: "Compta quants elements parells existeixen en la matriu d'enters." },
+      { name: "buscarMaximo", ret: "int", params: "int[] nums", body: "return Math.max(...nums);", javaBody: "int max = nums[0];\n        for (int x : nums) {\n            if (x > max) max = x;\n        }\n        return max;", tests: [{ call: "buscarMaximo([3, 9, 2, 7])", args: [[3, 9, 2, 7]], exp: 9 }, { call: "buscarMaximo([-5, -1, -8])", args: [[-5, -1, -8]], exp: -1 }], d_es: "Encuentra y devuelve el valor numérico más grande dentro del array.", d_va: "Troba i retorna el valor numèric més gran dins de la matriu." },
+      { name: "buscarMinimo", ret: "int", params: "int[] nums", body: "return Math.min(...nums);", javaBody: "int min = nums[0];\n        for (int x : nums) {\n            if (x < min) min = x;\n        }\n        return min;", tests: [{ call: "buscarMinimo([15, 4, 8, 2])", args: [[15, 4, 8, 2]], exp: 2 }, { call: "buscarMinimo([-3, 0, 5])", args: [[-3, 0, 5]], exp: -3 }], d_es: "Encuentra y devuelve el valor mínimo del array.", d_va: "Troba i retorna el valor mínim de la matriu." },
+      { name: "calcularMedia", ret: "double", params: "double[] notas", body: "let s = notas.reduce((a, b) => a + b, 0); return s / notas.length;", javaBody: "double suma = 0;\n        for (double n : notas) {\n            suma += n;\n        }\n        return suma / notas.length;", tests: [{ call: "calcularMedia([5.0, 7.0, 6.0])", args: [[5.0, 7.0, 6.0]], exp: 6.0 }, { call: "calcularMedia([10.0, 8.0])", args: [[10.0, 8.0]], exp: 9.0 }], d_es: "Calcula y devuelve la media aritmética de las calificaciones del array.", d_va: "Calcula i retorna la mitjana aritmètica de les qualificacions de la matriu." },
+      { name: "fibonacci", ret: "int", params: "int pos", body: "if (pos <= 0) return 0; if (pos === 1) return 1; let a = 0, b = 1; for (let i = 2; i <= pos; i++) { let c = a + b; a = b; b = c; } return b;", javaBody: "if (pos <= 0) return 0;\n        if (pos == 1) return 1;\n        int a = 0, b = 1;\n        for (int i = 2; i <= pos; i++) {\n            int c = a + b;\n            a = b;\n            b = c;\n        }\n        return b;", tests: [{ call: "fibonacci(4)", args: [4], exp: 3 }, { call: "fibonacci(6)", args: [6], exp: 8 }, { call: "fibonacci(1)", args: [1], exp: 1 }], d_es: "Devuelve el n-ésimo término de la sucesión de Fibonacci (fib(0)=0, fib(1)=1, fib(2)=1, fib(3)=2, ...).", d_va: "Retorna el n-éssim terme de la successió de Fibonacci." },
+      { name: "contieneElemento", ret: "boolean", params: "int[] nums, int objetivo", body: "return nums.includes(objetivo);", javaBody: "for (int x : nums) {\n            if (x == objetivo) return true;\n        }\n        return false;", tests: [{ call: "contieneElemento([2, 5, 8], 5)", args: [[2, 5, 8], 5], exp: true }, { call: "contieneElemento([2, 5, 8], 9)", args: [[2, 5, 8], 9], exp: false }], d_es: "Devuelve true si el valor objetivo existe en el array.", d_va: "Retorna true si el valor objectiu existeix en la matriu." },
+      { name: "indiceDe", ret: "int", params: "int[] nums, int objetivo", body: "return nums.indexOf(objetivo);", javaBody: "for (int i = 0; i < nums.length; i++) {\n            if (nums[i] == objetivo) return i;\n        }\n        return -1;", tests: [{ call: "indiceDe([10, 20, 30], 20)", args: [[10, 20, 30], 20], exp: 1 }, { call: "indiceDe([10, 20, 30], 99)", args: [[10, 20, 30], 99], exp: -1 }], d_es: "Devuelve la posición o índice donde se encuentra objetivo, o -1 si no está.", d_va: "Retorna la posició o índex on es troba l'objectiu, o -1 si no hi és." },
+      { name: "clasificarNota", ret: "String", params: "double nota", body: "if (nota < 5) return 'Suspenso'; if (nota < 7) return 'Aprobado'; if (nota < 9) return 'Notable'; return 'Sobresaliente';", javaBody: "if (nota < 5.0) return \"Suspenso\";\n        if (nota < 7.0) return \"Aprobado\";\n        if (nota < 9.0) return \"Notable\";\n        return \"Sobresaliente\";", tests: [{ call: "clasificarNota(4.5)", args: [4.5], exp: "Suspenso" }, { call: "clasificarNota(6.2)", args: [6.2], exp: "Aprobado" }, { call: "clasificarNota(9.5)", args: [9.5], exp: "Sobresaliente" }], d_es: "Clasifica la nota académica en 'Suspenso', 'Aprobado', 'Notable' o 'Sobresaliente'.", d_va: "Classifica la nota acadèmica en 'Suspenso', 'Aprobado', 'Notable' o 'Sobresaliente'." },
+      { name: "esBisiesto", ret: "boolean", params: "int anio", body: "return (anio % 4 === 0 && anio % 100 !== 0) || (anio % 400 === 0);", javaBody: "return (anio % 4 == 0 && anio % 100 != 0) || (anio % 400 == 0);", tests: [{ call: "esBisiesto(2024)", args: [2024], exp: true }, { call: "esBisiesto(2023)", args: [2023], exp: false }, { call: "esBisiesto(1900)", args: [1900], exp: false }, { call: "esBisiesto(2000)", args: [2000], exp: true }], d_es: "Determina si un año es bisiesto aplicando la regla del calendario gregoriano.", d_va: "Determina si un any és de traspàs aplicant la regla del calendari gregorià." }
+    ];
+
+    const EDITOR_METHODS_HARD = [
+      { name: "letraDni", ret: "char", params: "int dni", body: "const letras = 'TRWAGMYFPDXBNJZSQVHLCKE'; return letras[dni % 23];", javaBody: "String letras = \"TRWAGMYFPDXBNJZSQVHLCKE\";\n        return letras.charAt(dni % 23);", tests: [{ call: "letraDni(0)", args: [0], exp: 'T' }, { call: "letraDni(12345678)", args: [12345678], exp: 'Z' }], d_es: "Calcula la letra de control oficial del DNI español mediante la fórmula dni % 23.", d_va: "Calcula la lletra de control oficial del DNI espanyol mitjançant la fórmula dni % 23." },
+      { name: "busquedaBinaria", ret: "int", params: "int[] arr, int target", body: "let l = 0, r = arr.length - 1; while (l <= r) { let m = Math.floor((l + r) / 2); if (arr[m] === target) return m; if (arr[m] < target) l = m + 1; else r = m - 1; } return -1;", javaBody: "int l = 0, r = arr.length - 1;\n        while (l <= r) {\n            int m = (l + r) / 2;\n            if (arr[m] == target) return m;\n            if (arr[m] < target) l = m + 1;\n            else r = m - 1;\n        }\n        return -1;", tests: [{ call: "busquedaBinaria([2, 4, 6, 8, 10], 8)", args: [[2, 4, 6, 8, 10], 8], exp: 3 }, { call: "busquedaBinaria([2, 4, 6, 8, 10], 5)", args: [[2, 4, 6, 8, 10], 5], exp: -1 }], d_es: "Implementa búsqueda binaria dicotómica sobre un array ordenado. Devuelve índice o -1.", d_va: "Implementa cerca binària dicotòmica sobre una matriu ordenada. Retorna índex o -1." },
+      { name: "sumaDiagonalMatriz", ret: "int", params: "int[][] m", body: "let s = 0; for (let i = 0; i < m.length; i++) s += m[i][i]; return s;", javaBody: "int suma = 0;\n        for (int i = 0; i < m.length; i++) {\n            suma += m[i][i];\n        }\n        return suma;", tests: [{ call: "sumaDiagonalMatriz([[1, 2], [3, 4]])", args: [[[1, 2], [3, 4]]], exp: 5 }, { call: "sumaDiagonalMatriz([[5, 0], [0, 8]])", args: [[[5, 0], [0, 8]]], exp: 13 }], d_es: "Suma los elementos de la diagonal principal (m[i][i]) de una matriz cuadrada.", d_va: "Suma els elements de la diagonal principal (m[i][i]) d'una matriu quadrada." },
+      { name: "mcd", ret: "int", params: "int a, int b", body: "while (b !== 0) { let t = b; b = a % b; a = t; } return Math.abs(a);", javaBody: "while (b != 0) {\n            int temp = b;\n            b = a % b;\n            a = temp;\n        }\n        return Math.abs(a);", tests: [{ call: "mcd(24, 18)", args: [24, 18], exp: 6 }, { call: "mcd(10, 5)", args: [10, 5], exp: 5 }], d_es: "Calcula el Máximo Común Divisor (MCD) usando el algoritmo de Euclides.", d_va: "Calcula el Màxim Comú Divisor (MCD) emprant l'algorisme d'Euclides." },
+      { name: "sumarDigitos", ret: "int", params: "int n", body: "return Math.abs(n).toString().split('').reduce((a, b) => a + parseInt(b), 0);", javaBody: "int suma = 0;\n        n = Math.abs(n);\n        while (n > 0) {\n            suma += n % 10;\n            n /= 10;\n        }\n        return suma;", tests: [{ call: "sumarDigitos(123)", args: [123], exp: 6 }, { call: "sumarDigitos(505)", args: [505], exp: 10 }], d_es: "Descompone un número entero y suma cada uno de sus dígitos numéricos.", d_va: "Descompon un número enter i suma cadascun dels seus dígits numèrics." },
+      { name: "esMatrizIdentidad", ret: "boolean", params: "int[][] m", body: "for (let i = 0; i < m.length; i++) for (let j = 0; j < m.length; j++) { if (i === j && m[i][j] !== 1) return false; if (i !== j && m[i][j] !== 0) return false; } return true;", javaBody: "for (int i = 0; i < m.length; i++) {\n            for (int j = 0; j < m.length; j++) {\n                if (i == j && m[i][j] != 1) return false;\n                if (i != j && m[i][j] != 0) return false;\n            }\n        }\n        return true;", tests: [{ call: "esMatrizIdentidad([[1, 0], [0, 1]])", args: [[[1, 0], [0, 1]]], exp: true }, { call: "esMatrizIdentidad([[1, 2], [0, 1]])", args: [[[1, 2], [0, 1]]], exp: false }], d_es: "Comprueba si una matriz cuadrada es la matriz identidad (1 en la diagonal, 0 en el resto).", d_va: "Comprova si una matriu quadrada és la matriu identitat." },
+      { name: "validarLongitudPassword", ret: "boolean", params: "String pass", body: "return pass.length >= 8 && /[A-Z]/.test(pass) && /[0-9]/.test(pass);", javaBody: "if (pass.length() < 8) return false;\n        boolean tieneMayus = false, tieneNum = false;\n        for (char c : pass.toCharArray()) {\n            if (Character.isUpperCase(c)) tieneMayus = true;\n            if (Character.isDigit(c)) tieneNum = true;\n        }\n        return tieneMayus && tieneNum;", tests: [{ call: "validarLongitudPassword(\"Admin123\")", args: ["Admin123"], exp: true }, { call: "validarLongitudPassword(\"corta\")", args: ["corta"], exp: false }, { call: "validarLongitudPassword(\"todominusculas1\")", args: ["todominusculas1"], exp: false }], d_es: "Valida que la contraseña tenga mínimo 8 caracteres, al menos una mayúscula y un número.", d_va: "Valida que la contrasenya tinga mínim 8 caràcters, almenys una majúscula i un número." },
+      { name: "ordenarBurbujaPrimero", ret: "int", params: "int[] arr", body: "let a = [...arr]; a.sort((x, y) => x - y); return a[0];", javaBody: "for (int i = 0; i < arr.length - 1; i++) {\n            for (int j = 0; j < arr.length - i - 1; j++) {\n                if (arr[j] > arr[j + 1]) {\n                    int temp = arr[j];\n                    arr[j] = arr[j + 1];\n                    arr[j + 1] = temp;\n                }\n            }\n        }\n        return arr[0];", tests: [{ call: "ordenarBurbujaPrimero([5, 1, 4, 2])", args: [[5, 1, 4, 2]], exp: 1 }, { call: "ordenarBurbujaPrimero([9, 7, 8])", args: [[9, 7, 8]], exp: 7 }], d_es: "Ordena el array con el algoritmo de la burbuja y retorna el primer elemento (el menor).", d_va: "Ordena la matriu amb l'algorisme de la bambolla i retorna el primer element (el menor)." },
+      { name: "contarPalabras", ret: "int", params: "String frase", body: "let t = frase.trim(); return t === '' ? 0 : t.split(/\\s+/).length;", javaBody: "String s = frase.trim();\n        if (s.isEmpty()) return 0;\n        return s.split(\"\\\\s+\").length;", tests: [{ call: "contarPalabras(\"Hola mundo Java\")", args: ["Hola mundo Java"], exp: 3 }, { call: "contarPalabras(\"DAM\")", args: ["DAM"], exp: 1 }, { call: "contarPalabras(\"\")", args: [""], exp: 0 }], d_es: "Cuenta el número de palabras separadas por espacios en la frase.", d_va: "Compta el nombre de paraules separades per espais en la frase." },
+      { name: "dividirSeguro", ret: "int", params: "int a, int b", body: "if (b === 0) return -1; return Math.trunc(a / b);", javaBody: "if (b == 0) {\n            return -1; // Código de error controlado\n        }\n        return a / b;", tests: [{ call: "dividirSeguro(10, 2)", args: [10, 2], exp: 5 }, { call: "dividirSeguro(8, 0)", args: [8, 0], exp: -1 }], d_es: "Realiza la división entera controlando división entre cero (devolviendo -1 si b es 0).", d_va: "Realitza la divisió sencera controlant divisió entre zero (retornant -1 si b és 0)." }
+    ];
+
+    function getEditorMethodConfig(level, index) {
+      let pool = EDITOR_METHODS_EASY;
+      if (level === 'medium') pool = EDITOR_METHODS_MED;
+      if (level === 'hard') pool = EDITOR_METHODS_HARD;
+
+      const base = pool[index % pool.length];
+      const repeatNum = Math.floor(index / pool.length) + 1;
+      const suf = repeatNum > 1 ? ` (Variante ${repeatNum})` : '';
+      const suf_va = repeatNum > 1 ? ` (Variant ${repeatNum})` : '';
+
+      return {
+        name: base.name + (repeatNum > 1 ? repeatNum : ''),
+        ret: base.ret,
+        params: base.params,
+        sig: `${base.ret} ${base.name + (repeatNum > 1 ? repeatNum : '')}(${base.params})`,
+        t_es: `${base.name}${suf}`,
+        t_va: `${base.name}${suf_va}`,
+        d_es: base.d_es,
+        d_va: base.d_va,
+        body: base.body,
+        javaBody: base.javaBody || base.body,
+        tests: base.tests
+      };
+    }
+
+    function getAlgorithmTopic(level, index) {
+      if (level === 'easy') {
+        const item = TOPICS_EASY[index % TOPICS_EASY.length];
+        const num = Math.floor(index / TOPICS_EASY.length) + 1;
+        const suf = num > 1 ? ` (Variante ${num})` : '';
+        const suf_va = num > 1 ? ` (Variant ${num})` : '';
+        return {
+          name: `${item.name}${num > 1 ? num : ''}`,
+          t_es: `${item.t_es}${suf}`,
+          t_va: `${item.t_va}${suf_va}`,
+          d_es: item.d_es,
+          d_va: item.d_va,
+          val: item.val,
+          code: item.code
+        };
+      } else if (level === 'medium') {
+        const item = TOPICS_MED[index % TOPICS_MED.length];
+        const num = Math.floor(index / TOPICS_MED.length) + 1;
+        const suf = num > 1 ? ` (Variante ${num})` : '';
+        const suf_va = num > 1 ? ` (Variant ${num})` : '';
+        return {
+          name: `${item.name}${num > 1 ? num : ''}`,
+          t_es: `${item.t_es}${suf}`,
+          t_va: `${item.t_va}${suf_va}`,
+          d_es: item.d_es,
+          d_va: item.d_va,
+          val: item.val,
+          code: item.code
+        };
+      } else {
+        const item = TOPICS_HARD[index % TOPICS_HARD.length];
+        const num = Math.floor(index / TOPICS_HARD.length) + 1;
+        const suf = num > 1 ? ` (Variante ${num})` : '';
+        const suf_va = num > 1 ? ` (Variant ${num})` : '';
+        return {
+          name: `${item.name}${num > 1 ? num : ''}`,
+          t_es: `${item.t_es}${suf}`,
+          t_va: `${item.t_va}${suf_va}`,
+          d_es: item.d_es,
+          d_va: item.d_va,
+          val: item.val,
+          code: item.code
+        };
+      }
+    }
+
+    /* ==========================================================================
+       BANCO DE DATOS: 150 ACTIVIDADES DE BLOQUES VISUALES
+       ========================================================================== */
+    const BLOCK_ACTIVITIES = [];
+    (function generate150Blocks() {
+      for (let i = 1; i <= 150; i++) {
+        const lvl = i <= 50 ? 'easy' : i <= 100 ? 'medium' : 'hard';
+        const offset = i <= 50 ? i - 1 : i <= 100 ? i - 51 : i - 101;
+        const meta = getAlgorithmTopic(lvl, offset);
+
+        const lines = meta.code.split('\n');
+        const palette = lines.map(line => ({ text: line.trim(), code: line.trim(), category: 'code' }));
+        palette.push({ text: '// Comentario explicativo', code: '// Algoritmo ' + meta.name, category: 'code' });
+
+        BLOCK_ACTIVITIES.push({
+          id: i,
+          level: lvl,
+          funcName: meta.name,
+          title_es: `${i}. ${meta.t_es}`,
+          title_va: `${i}. ${meta.t_va}`,
+          desc_es: meta.d_es,
+          desc_va: meta.d_va,
+          expected: meta.val,
+          palette: palette
+        });
+      }
+    })();
+
+    let currentBlockFilter = 'all';
+    let currentBlockActId = 1;
+    let blockWorkspace = [];
+
+    function populateBlockSelect() {
+      const sel = document.getElementById('select-block-act');
+      if (!sel) return;
+      sel.innerHTML = '';
+      const filtered = BLOCK_ACTIVITIES.filter(a => currentBlockFilter === 'all' || a.level === currentBlockFilter);
+      filtered.forEach(a => {
+        const opt = document.createElement('option');
+        opt.value = a.id;
+        const check = progress.blocks[a.id] ? '✔ ' : '';
+        const t = currentLang === 'es' ? a.title_es : a.title_va;
+        opt.textContent = `${check}${t} [${getLevelLabel(a.level)}]`;
+        sel.appendChild(opt);
+      });
+      if (filtered.length > 0) {
+        const exists = filtered.some(a => a.id === currentBlockActId);
+        sel.value = exists ? currentBlockActId : filtered[0].id;
+      }
+    }
+
+    function setBlockFilter(lvl) {
+      currentBlockFilter = lvl;
+      ['all', 'easy', 'medium', 'hard'].forEach(l => {
+        const b = document.getElementById(`flt-blk-${l}`);
+        if (b) {
+          if (l === lvl) {
+            b.className = 'px-2.5 py-1 rounded bg-ide-surface text-white font-bold';
+          } else {
+            const col = l === 'easy' ? 'text-emerald-400' : l === 'medium' ? 'text-amber-400' : l === 'hard' ? 'text-rose-400' : 'text-slate-400';
+            b.className = `px-2.5 py-1 rounded ${col} hover:bg-ide-surface`;
+          }
+        }
+      });
+      populateBlockSelect();
+      const filtered = BLOCK_ACTIVITIES.filter(a => lvl === 'all' || a.level === lvl);
+      if (filtered.length > 0) {
+        const exists = filtered.some(a => a.id === currentBlockActId);
+        const nextId = exists ? currentBlockActId : filtered[0].id;
+        selectBlockActivity(nextId);
+      }
+    }
+
+    function onBlockActChange(val) {
+      selectBlockActivity(parseInt(val, 10));
+    }
+
+    function selectBlockActivity(id) {
+      currentBlockActId = id;
+      blockWorkspace = [];
+      renderBlockActivity(id);
+    }
+
+    function renderBlockActivity(id) {
+      const act = BLOCK_ACTIVITIES.find(a => a.id === id);
+      if (!act) return;
+
+      document.getElementById('blk-act-title').textContent = currentLang === 'es' ? act.title_es : act.title_va;
+      document.getElementById('blk-act-desc').textContent = currentLang === 'es' ? act.desc_es : act.desc_va;
+      document.getElementById('blk-target-output').textContent = act.expected;
+      
+      const badge = document.getElementById('blk-level-badge');
+      badge.textContent = getLevelLabel(act.level);
+      badge.className = `text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider ${getBadgeClass(act.level)}`;
+
+      const palContainer = document.getElementById('palette-container');
+      palContainer.innerHTML = '';
+      act.palette.forEach((item) => {
+        const div = document.createElement('div');
+        div.className = 'p-2.5 rounded-lg bg-ide-bg hover:bg-ide-card border border-ide-border cursor-pointer transition-all flex items-center justify-between text-xs font-mono text-amber-300 hover:border-amber-400/50';
+        div.innerHTML = `<span>${escapeHtml(item.text)}</span> <span class="text-ide-accent text-sm">➕</span>`;
+        div.onclick = () => addBlockToWorkspace(item);
+        palContainer.appendChild(div);
+      });
+
+      renderWorkspaceUI();
+    }
+
+    function addBlockToWorkspace(block) {
+      blockWorkspace.push(block);
+      renderWorkspaceUI();
+    }
+
+    function removeBlockFromWorkspace(idx) {
+      blockWorkspace.splice(idx, 1);
+      renderWorkspaceUI();
+    }
+
+    function clearBlockWorkspace() {
+      blockWorkspace = [];
+      renderWorkspaceUI();
+    }
+
+    function renderWorkspaceUI() {
+      const ws = document.getElementById('workspace-container');
+      const counter = document.getElementById('blk-counter');
+      counter.textContent = `(${blockWorkspace.length} ${currentLang === 'es' ? 'bloques' : 'blocs'})`;
+
+      if (blockWorkspace.length === 0) {
+        ws.innerHTML = `<div class="h-full flex items-center justify-center text-xs text-ide-muted italic py-6">${I18N[currentLang].blocks_empty_ws}</div>`;
+      } else {
+        ws.innerHTML = '';
+        blockWorkspace.forEach((b, idx) => {
+          const row = document.createElement('div');
+          row.className = 'flex items-center justify-between p-2 rounded bg-ide-card border border-ide-border text-xs font-mono text-emerald-400';
+          row.innerHTML = `
+            <div class="flex items-center gap-2">
+              <span class="text-[10px] text-ide-muted">${idx + 1}</span>
+              <span>${escapeHtml(b.code)}</span>
+            </div>
+            <button onclick="removeBlockFromWorkspace(${idx})" class="text-rose-400 hover:text-rose-300 text-sm px-1.5">✕</button>
+          `;
+          ws.appendChild(row);
+        });
+      }
+
+      let codeLines = blockWorkspace.map(b => '        ' + b.code).join('\n');
+      if (!codeLines) codeLines = '        // ' + (currentLang === 'es' ? 'Añade bloques para generar código...' : 'Afig blocs per a generar codi...');
+      document.getElementById('blocks-java-code').textContent = 
+`public class Main {
+    public static void main(String[] args) {
+${codeLines}
+    }
+}`;
+    }
+
+    function copyGeneratedBlockCode() {
+      const code = document.getElementById('blocks-java-code').textContent;
+      navigator.clipboard?.writeText(code);
+    }
+
+    function runBlockSimulation() {
+      const act = BLOCK_ACTIVITIES.find(a => a.id === currentBlockActId);
+      const term = document.getElementById('blocks-terminal');
+      if (!act) return;
+
+      term.innerHTML = `<span class="text-ide-accent">&gt; [JVM] Compilando Main.java (${escapeHtml(act.funcName)})...</span>\n`;
+
+      let outputLines = [];
+      blockWorkspace.forEach(b => {
+        const m = b.code.match(/System\.out\.print(ln)?\((.*)\);/);
+        if (m) {
+          outputLines.push(act.expected);
+        }
+      });
+
+      const actual = outputLines.join('\n').trim();
+      setTimeout(() => {
+        if (!actual) {
+          term.innerHTML += `<span class="text-amber-400">&gt; Programa ejecutado sin salida estándar. Incluye una sentencia System.out.println(...).</span>\n`;
+          return;
+        }
+
+        term.innerHTML += `<span class="text-white">&gt; Salida:\n${escapeHtml(actual)}</span>\n\n`;
+        if (actual === act.expected.trim()) {
+          term.innerHTML += `<span class="text-emerald-400 font-bold">&gt; ✔ ¡ACTIVIDAD COMPLETADA CON ÉXITO!</span>`;
+          progress.blocks[act.id] = true;
+          saveProgress();
+          populateBlockSelect();
+        } else {
+          term.innerHTML += `<span class="text-rose-400">&gt; ❌ La salida obtenida no coincide con la esperada ('${act.expected}').</span>`;
+        }
+      }, 150);
+    }
+
+    /* ==========================================================================
+       BANCO DE DATOS: 150 PUZZLES PARSONS CON METADATOS CLAROS Y DISTRACTORES
+       ========================================================================== */
+    const PARSONS_ACTIVITIES = [];
+    (function generate150Parsons() {
+      for (let i = 1; i <= 150; i++) {
+        const lvl = i <= 50 ? 'easy' : i <= 100 ? 'medium' : 'hard';
+        const offset = i <= 50 ? i - 1 : i <= 100 ? i - 51 : i - 101;
+        const meta = getAlgorithmTopic(lvl, offset);
+
+        const lines = meta.code.split('\n').map(l => {
+          let ind = 0;
+          if (l.startsWith('    ') || l.startsWith('  ')) ind = 1;
+          if (l.startsWith('        ') || l.startsWith('    ')) ind = 1;
+          return { text: l.trim(), indent: ind };
+        });
+
+        const distractors = [
+          { text: lines[0].text + ' ;', distractor: true },
+          { text: 'return -999;', distractor: true }
+        ];
+
+        PARSONS_ACTIVITIES.push({
+          id: i,
+          level: lvl,
+          funcName: meta.name,
+          title_es: `${i}. ${meta.t_es}`,
+          title_va: `${i}. ${meta.t_va}`,
+          desc_es: `${meta.d_es} Ordena las sentencias en la secuencia correcta e indenta con [ + ] y [ - ].`,
+          desc_va: `${meta.d_va} Ordena les sentències en la seqüència correcta i indenta amb [ + ] i [ - ].`,
+          correctLines: lines,
+          distractors: distractors
+        });
+      }
+    })();
+
+    let currentParsonsFilter = 'all';
+    let currentParsonsActId = 1;
+    let parsonsBank = [];
+    let parsonsTarget = [];
+
+    function populateParsonsSelect() {
+      const sel = document.getElementById('select-parsons-act');
+      if (!sel) return;
+      sel.innerHTML = '';
+      const filtered = PARSONS_ACTIVITIES.filter(a => currentParsonsFilter === 'all' || a.level === currentParsonsFilter);
+      filtered.forEach(a => {
+        const opt = document.createElement('option');
+        opt.value = a.id;
+        const check = progress.parsons[a.id] ? '✔ ' : '';
+        const t = currentLang === 'es' ? a.title_es : a.title_va;
+        opt.textContent = `${check}${t} [${getLevelLabel(a.level)}]`;
+        sel.appendChild(opt);
+      });
+      if (filtered.length > 0) {
+        const exists = filtered.some(a => a.id === currentParsonsActId);
+        sel.value = exists ? currentParsonsActId : filtered[0].id;
+      }
+    }
+
+    function setParsonsFilter(lvl) {
+      currentParsonsFilter = lvl;
+      ['all', 'easy', 'medium', 'hard'].forEach(l => {
+        const b = document.getElementById(`flt-par-${l}`);
+        if (b) {
+          if (l === lvl) {
+            b.className = 'px-2.5 py-1 rounded bg-ide-surface text-white font-bold';
+          } else {
+            const col = l === 'easy' ? 'text-emerald-400' : l === 'medium' ? 'text-amber-400' : l === 'hard' ? 'text-rose-400' : 'text-slate-400';
+            b.className = `px-2.5 py-1 rounded ${col} hover:bg-ide-surface`;
+          }
+        }
+      });
+      populateParsonsSelect();
+      const filtered = PARSONS_ACTIVITIES.filter(a => lvl === 'all' || a.level === lvl);
+      if (filtered.length > 0) {
+        const exists = filtered.some(a => a.id === currentParsonsActId);
+        const nextId = exists ? currentParsonsActId : filtered[0].id;
+        selectParsonsActivity(nextId);
+      }
+    }
+
+    function onParsonsActChange(val) {
+      selectParsonsActivity(parseInt(val, 10));
+    }
+
+    function selectParsonsActivity(id) {
+      currentParsonsActId = id;
+      renderParsonsActivity(id);
+    }
+
+    function resetParsonsCurrent() {
+      renderParsonsActivity(currentParsonsActId);
+    }
+
+    function renderParsonsActivity(id) {
+      const act = PARSONS_ACTIVITIES.find(a => a.id === id);
+      if (!act) return;
+
+      document.getElementById('par-act-title').textContent = currentLang === 'es' ? act.title_es : act.title_va;
+      document.getElementById('par-act-desc').textContent = currentLang === 'es' ? act.desc_es : act.desc_va;
+
+      const badge = document.getElementById('par-level-badge');
+      badge.textContent = getLevelLabel(act.level);
+      badge.className = `text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider ${getBadgeClass(act.level)}`;
+
+      const items = [
+        ...act.correctLines.map((l, idx) => ({ id: `c_${idx}`, text: l.text.trim(), indent: 0, isDistractor: false })),
+        ...act.distractors.map((d, idx) => ({ id: `d_${idx}`, text: d.text.trim(), indent: 0, isDistractor: true }))
+      ];
+      parsonsBank = items.sort(() => 0.5 - Math.random());
+      parsonsTarget = [];
+
+      document.getElementById('parsons-feedback').classList.add('hidden');
+      renderParsonsUI();
+    }
+
+    function renderParsonsUI() {
+      const bankDiv = document.getElementById('parsons-bank');
+      const targetDiv = document.getElementById('parsons-target');
+
+      bankDiv.innerHTML = '';
+      parsonsBank.forEach((item, idx) => {
+        const div = document.createElement('div');
+        div.className = 'p-2.5 rounded-lg bg-ide-card hover:bg-ide-card/80 border border-ide-border cursor-pointer text-xs font-mono text-amber-300 flex items-center justify-between transition-all';
+        div.innerHTML = `<span>${escapeHtml(item.text)}</span> <span class="text-xs text-ide-accent">➡</span>`;
+        div.onclick = () => {
+          parsonsTarget.push({ ...item, indent: 0 });
+          parsonsBank.splice(idx, 1);
+          renderParsonsUI();
+        };
+        bankDiv.appendChild(div);
+      });
+
+      targetDiv.innerHTML = '';
+      if (parsonsTarget.length === 0) {
+        targetDiv.innerHTML = `<div class="h-full flex items-center justify-center text-xs text-ide-muted italic py-12">${currentLang === 'es' ? 'Haz clic en las líneas de la izquierda para transferirlas aquí.' : 'Fes clic en les línies de l\'esquerra per a transferir-les ací.'}</div>`;
+      } else {
+        parsonsTarget.forEach((item, idx) => {
+          const div = document.createElement('div');
+          const indentPx = (item.indent || 0) * 24;
+          div.className = 'p-2 rounded-lg bg-ide-surface border border-ide-border text-xs font-mono text-emerald-300 flex items-center justify-between transition-all';
+          div.style.marginLeft = `${indentPx}px`;
+
+          div.innerHTML = `
+            <div class="flex items-center gap-2 overflow-x-auto">
+              <span class="text-[10px] text-ide-muted">${idx + 1}</span>
+              <span>${escapeHtml(item.text)}</span>
+            </div>
+            <div class="flex items-center gap-1">
+              <button onclick="changeParsonsIndent(${idx}, -1)" class="px-1.5 py-0.5 rounded bg-ide-card hover:bg-ide-card/80 text-[10px] text-ide-muted" title="Menos sangría">-</button>
+              <button onclick="changeParsonsIndent(${idx}, 1)" class="px-1.5 py-0.5 rounded bg-ide-card hover:bg-ide-card/80 text-[10px] text-ide-muted" title="Más sangría">+</button>
+              <button onclick="removeParsonsFromTarget(${idx})" class="text-rose-400 hover:text-rose-300 px-1 text-sm">✕</button>
+            </div>
+          `;
+          targetDiv.appendChild(div);
+        });
+      }
+    }
+
+    function changeParsonsIndent(idx, delta) {
+      if (!parsonsTarget[idx]) return;
+      const cur = parsonsTarget[idx].indent || 0;
+      parsonsTarget[idx].indent = Math.max(0, Math.min(3, cur + delta));
+      renderParsonsUI();
+    }
+
+    function removeParsonsFromTarget(idx) {
+      const removed = parsonsTarget.splice(idx, 1)[0];
+      parsonsBank.push(removed);
+      renderParsonsUI();
+    }
+
+    function checkParsonsSolution() {
+      const act = PARSONS_ACTIVITIES.find(a => a.id === currentParsonsActId);
+      const fb = document.getElementById('parsons-feedback');
+      fb.classList.remove('hidden');
+
+      if (!act) return;
+
+      if (parsonsTarget.length !== act.correctLines.length) {
+        fb.className = 'p-3 rounded-xl border border-rose-500/30 bg-rose-500/10 text-xs font-mono text-rose-300';
+        fb.innerHTML = currentLang === 'es'
+          ? `❌ El algoritmo debe tener exactamente ${act.correctLines.length} líneas. Asegúrate de descartar las líneas trampa.`
+          : `❌ L'algorisme ha de tindre exactament ${act.correctLines.length} línies. Assegura't de descartar les línies trampa.`;
+        return;
+      }
+
+      let ok = true;
+      let errReason = '';
+
+      for (let i = 0; i < act.correctLines.length; i++) {
+        const exp = act.correctLines[i];
+        const user = parsonsTarget[i];
+
+        if (user.isDistractor) {
+          ok = false;
+          errReason = currentLang === 'es' ? `Has incluido una línea trampa: "${user.text}"` : `Has inclòs una línia trampa: "${user.text}"`;
+          break;
+        }
+
+        if (user.text !== exp.text.trim()) {
+          ok = false;
+          errReason = currentLang === 'es' ? `Error en la línea ${i + 1}: el orden del código no es correcto.` : `Error en la línia ${i + 1}: l'orde del codi no és correcte.`;
+          break;
+        }
+      }
+
+      if (ok) {
+        fb.className = 'p-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-xs font-mono text-emerald-300';
+        fb.innerHTML = currentLang === 'es' ? '✔ ¡Puzzle Parsons resuelto correctamente! Código compilable e indentado.' : '✔ Puzzle Parsons resolt correctament! Codi compilable i indentat.';
+        progress.parsons[act.id] = true;
+        saveProgress();
+        populateParsonsSelect();
+      } else {
+        fb.className = 'p-3 rounded-xl border border-rose-500/30 bg-rose-500/10 text-xs font-mono text-rose-300';
+        fb.innerHTML = `❌ ${errReason}`;
+      }
+    }
+
+    /* ==========================================================================
+       BANCO DE DATOS: 150 EJERCICIOS MICRO-EDITOR CON NOMBRES Y DESCRIPCIONES EXACTAS
+       ========================================================================== */
+    const EDITOR_ACTIVITIES = [];
+    (function generate150Editor() {
+      for (let i = 1; i <= 150; i++) {
+        const lvl = i <= 50 ? 'easy' : i <= 100 ? 'medium' : 'hard';
+        const offset = i <= 50 ? i - 1 : i <= 100 ? i - 51 : i - 101;
+        const meta = getEditorMethodConfig(lvl, offset);
+
+        const sig = `public static ${meta.sig}`;
+        const defaultReturn = meta.ret === 'boolean' ? 'return false;' : meta.ret === 'String' ? 'return "";' : meta.ret === 'char' ? "return ' ';" : meta.ret === 'double' ? 'return 0.0;' : 'return 0;';
+
+        const template = `public class Solucion {
+    /**
+     * ${meta.t_es}
+     * ${meta.d_es}
+     */
+    ${sig} {
+        // TODO: Implementa tu solución aquí:
+        ${defaultReturn}
+    }
+}`;
+
+        const fullOfficialSolution = `public class Solucion {
+    /**
+     * ${meta.t_es}
+     * Solución oficial verificada
+     */
+    ${sig} {
+        ${meta.javaBody.trim()}
+    }
+}`;
+
+        EDITOR_ACTIVITIES.push({
+          id: i,
+          level: lvl,
+          funcName: meta.name,
+          title_es: `${i}. ${meta.t_es}`,
+          title_va: `${i}. ${meta.t_va}`,
+          desc_es: `${meta.d_es} Firma requerida: '${meta.sig}'.`,
+          desc_va: `${meta.d_va} Signatura requerida: '${meta.sig}'.`,
+          signature: meta.sig,
+          template: template,
+          officialSolution: fullOfficialSolution,
+          evalBody: meta.body,
+          tests: meta.tests
+        });
+      }
+    })();
+
+    let currentEditorFilter = 'all';
+    let currentEditorActId = 1;
+
+    function populateEditorSelect() {
+      const sel = document.getElementById('select-editor-act');
+      if (!sel) return;
+      sel.innerHTML = '';
+      const filtered = EDITOR_ACTIVITIES.filter(a => currentEditorFilter === 'all' || a.level === currentEditorFilter);
+      filtered.forEach(a => {
+        const opt = document.createElement('option');
+        opt.value = a.id;
+        const check = progress.editor[a.id] ? '✔ ' : '';
+        const t = currentLang === 'es' ? a.title_es : a.title_va;
+        opt.textContent = `${check}${t} [${getLevelLabel(a.level)}]`;
+        sel.appendChild(opt);
+      });
+      if (filtered.length > 0) {
+        const exists = filtered.some(a => a.id === currentEditorActId);
+        sel.value = exists ? currentEditorActId : filtered[0].id;
+      }
+    }
+
+    function setEditorFilter(lvl) {
+      currentEditorFilter = lvl;
+      ['all', 'easy', 'medium', 'hard'].forEach(l => {
+        const b = document.getElementById(`flt-edt-${l}`);
+        if (b) {
+          if (l === lvl) {
+            b.className = 'px-2.5 py-1 rounded bg-ide-surface text-white font-bold';
+          } else {
+            const col = l === 'easy' ? 'text-emerald-400' : l === 'medium' ? 'text-amber-400' : l === 'hard' ? 'text-rose-400' : 'text-slate-400';
+            b.className = `px-2.5 py-1 rounded ${col} hover:bg-ide-surface`;
+          }
+        }
+      });
+      populateEditorSelect();
+      const filtered = EDITOR_ACTIVITIES.filter(a => lvl === 'all' || a.level === lvl);
+      if (filtered.length > 0) {
+        const exists = filtered.some(a => a.id === currentEditorActId);
+        const nextId = exists ? currentEditorActId : filtered[0].id;
+        selectEditorActivity(nextId, false);
+      }
+    }
+
+    function onEditorActChange(val) {
+      selectEditorActivity(parseInt(val, 10), false);
+    }
+
+    function selectEditorActivity(id, keepUserCode = false) {
+      currentEditorActId = id;
+      renderEditorActivity(id, keepUserCode);
+    }
+
+    function renderEditorActivity(id, keepUserCode = false) {
+      const act = EDITOR_ACTIVITIES.find(a => a.id === id);
+      if (!act) return;
+
+      document.getElementById('edt-act-title').textContent = currentLang === 'es' ? act.title_es : act.title_va;
+      document.getElementById('edt-act-desc').textContent = currentLang === 'es' ? act.desc_es : act.desc_va;
+
+      const badge = document.getElementById('edt-level-badge');
+      badge.textContent = getLevelLabel(act.level);
+      badge.className = `text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider ${getBadgeClass(act.level)}`;
+
+      if (!keepUserCode) {
+        document.getElementById('java-code-editor').value = act.template;
+      }
+
+      document.getElementById('test-summary-badge').textContent = `0/${act.tests.length} ${currentLang === 'es' ? 'pasados' : 'passats'}`;
+      document.getElementById('junit-terminal').innerHTML = `<div class="text-ide-muted italic py-10 text-center">${I18N[currentLang].junit_waiting}</div>`;
+    }
+
+    function clearEditorManual() {
+      const act = EDITOR_ACTIVITIES.find(a => a.id === currentEditorActId);
+      const sig = act ? act.signature : 'void metodo()';
+      document.getElementById('java-code-editor').value = 
+`public class Solucion {
+    public static ${sig} {
+        // Escribe toda tu implementación a mano aquí:
+        
+    }
+}`;
+      document.getElementById('java-code-editor').focus();
+    }
+
+    function restoreEditorTemplate() {
+      const act = EDITOR_ACTIVITIES.find(a => a.id === currentEditorActId);
+      if (act) {
+        document.getElementById('java-code-editor').value = act.template;
+      }
+    }
+
+    /* ==========================================================================
+       MODAL DE COMPARACIÓN DE SOLUCIÓN OFICIAL (BLOQUE 3)
+       ========================================================================== */
+    function openSolutionModal() {
+      const act = EDITOR_ACTIVITIES.find(a => a.id === currentEditorActId);
+      if (!act) return;
+
+      const userCode = document.getElementById('java-code-editor').value;
+      const modal = document.getElementById('solution-modal');
+
+      document.getElementById('modal-method-badge').textContent = act.signature;
+      document.getElementById('modal-user-preview').textContent = userCode || '// No has escrito código aún';
+      document.getElementById('modal-official-preview').textContent = act.officialSolution;
+
+      const isCompleted = progress.editor[act.id];
+      const statusBadge = document.getElementById('modal-user-status');
+      if (isCompleted) {
+        statusBadge.textContent = currentLang === 'es' ? '✔ Superado' : '✔ Superat';
+        statusBadge.className = 'text-[11px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold';
+      } else {
+        statusBadge.textContent = currentLang === 'es' ? 'En desarrollo' : 'En desenrotllament';
+        statusBadge.className = 'text-[11px] font-mono px-2 py-0.5 rounded bg-ide-card text-ide-muted';
+      }
+
+      modal.classList.remove('hidden');
+    }
+
+    function closeSolutionModal() {
+      document.getElementById('solution-modal').classList.add('hidden');
+    }
+
+    function copyOfficialSolution() {
+      const act = EDITOR_ACTIVITIES.find(a => a.id === currentEditorActId);
+      if (!act) return;
+      navigator.clipboard?.writeText(act.officialSolution);
+      const btn = document.getElementById('btn-copy-solution');
+      const originalText = btn.textContent;
+      btn.textContent = currentLang === 'es' ? '✔ ¡Copiado!' : '✔ Copiat!';
+      setTimeout(() => { btn.textContent = originalText; }, 1800);
+    }
+
+    function applyOfficialSolutionToEditor() {
+      const act = EDITOR_ACTIVITIES.find(a => a.id === currentEditorActId);
+      if (!act) return;
+      document.getElementById('java-code-editor').value = act.officialSolution;
+      closeSolutionModal();
+      document.getElementById('java-code-editor').focus();
+    }
+
+    // Cerrar modal con tecla Escape
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        closeSolutionModal();
+      }
+    });
+
+    function extractMethodBodyAndParams(code, funcName) {
+      // Intenta extraer los nombres de los parámetros del método Java escrito
+      const regexHeader = new RegExp(`(?:public|static|final|private|protected|\\s)*[\\w<>\\[\\]]+\\s+${funcName}\\s*\\(([^)]*)\\)\\s*\\{`, 'm');
+      const matchH = code.match(regexHeader);
+      
+      let paramNames = [];
+      let bodyStartIndex = -1;
+
+      if (matchH) {
+        const rawParams = matchH[1].trim();
+        if (rawParams) {
+          paramNames = rawParams.split(',').map(p => {
+            const parts = p.trim().split(/\s+/);
+            return parts[parts.length - 1].replace(/[^\w$]/g, '');
+          });
+        }
+        bodyStartIndex = matchH.index + matchH[0].length;
+      } else {
+        // Si el alumno eliminó la firma o cambió el nombre, busca la primera llave abierta
+        bodyStartIndex = code.indexOf('{');
+        if (bodyStartIndex !== -1) bodyStartIndex++;
+      }
+
+      if (bodyStartIndex === -1) {
+        throw new Error(currentLang === 'es' ? 'No se encontró la apertura de llaves { del método.' : 'No s\'ha trobat l\'obertura de claus { del mètode.');
+      }
+
+      // Extraer bloque equilibrado de llaves
+      let depth = 1;
+      let bodyEndIndex = -1;
+      for (let i = bodyStartIndex; i < code.length; i++) {
+        if (code[i] === '{') depth++;
+        else if (code[i] === '}') {
+          depth--;
+          if (depth === 0) {
+            bodyEndIndex = i;
+            break;
+          }
+        }
+      }
+
+      if (bodyEndIndex === -1) {
+        throw new Error(currentLang === 'es' ? 'Falta cerrar la llave } del método.' : 'Falta tancar la clau } del mètode.');
+      }
+
+      let rawBody = code.substring(bodyStartIndex, bodyEndIndex);
+
+      // Conversión sintáctica elemental de Java a JavaScript para el runner en el navegador:
+      let jsBody = rawBody
+        // tipos primitivos y declaraciones
+        .replace(/\b(int|double|float|long|short|byte|boolean|String|char)\s+([a-zA-Z_$][\w$]*)\b/g, 'let $2')
+        .replace(/\b(int|double|float|String|char|boolean)\[\]\s+([a-zA-Z_$][\w$]*)\b/g, 'let $2')
+        .replace(/\b(int|double|float|String|char|boolean)\[\]\[\]\s+([a-zA-Z_$][\w$]*)\b/g, 'let $2')
+        // String methods
+        .replace(/\.length\(\)/g, '.length')
+        .replace(/\.charAt\(([^)]+)\)/g, '[$1]')
+        .replace(/\.equals\(([^)]+)\)/g, ' === $1')
+        .replace(/\.equalsIgnoreCase\(([^)]+)\)/g, '.toLowerCase() === ($1).toLowerCase()')
+        // Math helpers
+        .replace(/Math\.abs\(/g, 'Math.abs(')
+        .replace(/Character\.isUpperCase\(([^)]+)\)/g, '(/[A-Z]/.test($1))')
+        .replace(/Character\.isDigit\(([^)]+)\)/g, '(/[0-9]/.test($1))')
+        // System.out
+        .replace(/System\.out\.println\([^)]*\);?/g, '');
+
+      return { paramNames, jsBody };
+    }
+
+    function runEditorJUnitTests() {
+      const act = EDITOR_ACTIVITIES.find(a => a.id === currentEditorActId);
+      const code = document.getElementById('java-code-editor').value;
+      const term = document.getElementById('junit-terminal');
+      if (!act) return;
+
+      term.innerHTML = `<div class="text-ide-accent font-semibold pb-1 border-b border-ide-border">&gt; Ejecutando suite de pruebas JUnit para ${escapeHtml(act.funcName)}...</div>`;
+
+      let parsed = null;
+      try {
+        parsed = extractMethodBodyAndParams(code, act.funcName);
+      } catch (err) {
+        term.innerHTML += `<div class="p-2 mt-2 rounded bg-rose-500/10 border border-rose-500/20 text-rose-300">❌ Error de compilación sintáctica: ${escapeHtml(err.message)}</div>`;
+        return;
+      }
+
+      let userFn = null;
+      try {
+        userFn = new Function(...parsed.paramNames, parsed.jsBody);
+      } catch (compileErr) {
+        term.innerHTML += `<div class="p-2 mt-2 rounded bg-rose-500/10 border border-rose-500/20 text-rose-300">❌ Error al evaluar el código: ${escapeHtml(compileErr.message)}</div>`;
+        return;
+      }
+
+      let passedCount = 0;
+      let htmlResults = '';
+
+      act.tests.forEach((t, idx) => {
+        let isPass = false;
+        let actual = null;
+        let errorMsg = null;
+
+        try {
+          actual = userFn(...t.args);
+
+          // Normalización para comparaciones
+          if (typeof t.exp === 'number' && typeof actual === 'number') {
+            isPass = Math.abs(actual - t.exp) < 0.001;
+          } else if (typeof t.exp === 'boolean') {
+            isPass = actual === t.exp;
+          } else if (Array.isArray(t.exp)) {
+            isPass = JSON.stringify(actual) === JSON.stringify(t.exp);
+          } else {
+            isPass = String(actual) === String(t.exp);
+          }
+
+          if (isPass) passedCount++;
+        } catch (execErr) {
+          errorMsg = execErr.message;
+        }
+
+        if (isPass) {
+          htmlResults += `
+            <div class="p-2 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-300">
+              <span class="font-bold">✔ TEST ${idx + 1} PASADO:</span> ${escapeHtml(t.call)} == ${JSON.stringify(t.exp)}
+            </div>
+          `;
+        } else {
+          htmlResults += `
+            <div class="p-2 rounded bg-rose-500/10 border border-rose-500/20 text-rose-300">
+              <span class="font-bold">❌ TEST ${idx + 1} FALLADO:</span> ${escapeHtml(t.call)}<br>
+              <span class="text-[11px] text-ide-muted">Esperado: <strong>${JSON.stringify(t.exp)}</strong> | Obtenido: <strong>${errorMsg ? 'Excepción: ' + escapeHtml(errorMsg) : JSON.stringify(actual)}</strong></span>
+            </div>
+          `;
+        }
+      });
+
+      term.innerHTML += htmlResults;
+
+      const badge = document.getElementById('test-summary-badge');
+      badge.textContent = `${passedCount}/${act.tests.length} ${currentLang === 'es' ? 'pasados' : 'passats'}`;
+
+      if (passedCount === act.tests.length) {
+        badge.className = 'text-[11px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold';
+        term.innerHTML += `<div class="text-emerald-400 font-bold pt-2 border-t border-ide-border">&gt; ¡ENHORABUENA! Todos los casos de prueba han superado la verificación.</div>`;
+        progress.editor[act.id] = true;
+        saveProgress();
+        populateEditorSelect();
+      } else {
+        badge.className = 'text-[11px] font-mono px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 font-bold';
+      }
+    }
+
+    document.getElementById('java-code-editor')?.addEventListener('keydown', function(e) {
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        const start = this.selectionStart;
+        const end = this.selectionEnd;
+        this.value = this.value.substring(0, start) + '    ' + this.value.substring(end);
+        this.selectionStart = this.selectionEnd = start + 4;
+      }
+    });
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    /* ==========================================================================
+       INICIALIZACIÓN
+       ========================================================================== */
+    function init() {
+      loadProgress();
+      populateBlockSelect();
+      populateParsonsSelect();
+      populateEditorSelect();
+      setLanguage('es');
+      renderBlockActivity(currentBlockActId);
+      renderParsonsActivity(currentParsonsActId);
+      renderEditorActivity(currentEditorActId, false);
+      switchMode('blocks');
+    }
+
+    if (document.readyState === 'loading') {
+      window.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+  </script>
+</body>
+</html>

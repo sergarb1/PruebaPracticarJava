@@ -1,0 +1,20 @@
+/* ==========================================================================
+   theme.css — estilos base del monolito original
+   (extraídos literalmente del bloque <style> de legacy/AplicacionJAVA-original.html)
+   + animación fadeIn usada por el modal (#solution-modal), que el original
+   invocaba sin definirla.
+   ========================================================================== */
+body { font-family: 'Inter', sans-serif; }
+code, pre, .font-mono { font-family: 'Fira Code', monospace; }
+/* Scrollbars discretos */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #181825; }
+::-webkit-scrollbar-thumb { background: #313244; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #45475a; }
+
+/* Animación de aparición del modal (usada por la clase animate-fadeIn) */
+.animate-fadeIn { animation: fadeIn .15s ease-out; }
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}

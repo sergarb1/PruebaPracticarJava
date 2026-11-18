@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JavaLearn DAM - Simulador de Programación Java</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23181825'/%3E%3Ctext x='16' y='23' font-family='Fira Code,monospace' font-size='19' font-weight='700' fill='%23f9e2af' text-anchor='middle'%3EJ%3C/text%3E%3C/svg%3E">
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            ide: {
+              bg: '#181825',
+              surface: '#1e1e2e',
+              card: '#252538',
+              border: '#313244',
+              accent: '#89b4fa',
+              success: '#a6e3a1',
+              warning: '#f9e2af',
+              danger: '#f38ba8',
+              text: '#cdd6f4',
+              muted: '#9399b2'
+            }
+          }
+        }
+      }
+    };
+  </script>
+  <!-- Inter font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/theme.css">
+</head>
+<body class="bg-ide-bg text-ide-text min-h-full flex flex-col antialiased select-none">
+
+  <!-- CABECERA PRINCIPAL -->
+  <header class="bg-ide-surface border-b border-ide-border sticky top-0 z-50 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-600 to-amber-400 flex items-center justify-center font-bold text-white shadow-lg text-lg">
+          ☕
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="font-bold text-lg text-white tracking-tight">JavaLearn <span class="text-amber-400 text-xs px-2 py-0.5 rounded bg-amber-400/10 border border-amber-400/30">DAM 1º</span></h1>
+            <span class="text-[11px] font-medium text-amber-300 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full" id="lbl-author-badge" data-i18n="author_badge">Autora: Mara Vañó</span>
+          </div>
+          <p id="lbl-subtitle" class="text-xs text-ide-muted" data-i18n="subtitle">Plataforma interactiva de aprendizaje de Java (450 Retos)</p>
+        </div>
+      </div>
+
+      <!-- Selector de Modo -->
+      <div class="flex bg-ide-card p-1 rounded-xl border border-ide-border text-xs font-semibold gap-1">
+        <button id="btn-mode-blocks" class="px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 bg-ide-accent text-slate-900 shadow font-bold">
+          🧩 <span id="lbl-nav-blocks" data-i18n="nav_blocks">1. Bloques</span>
+        </button>
+        <button id="btn-mode-parsons" class="px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 text-ide-muted hover:text-white">
+          📐 <span id="lbl-nav-parsons" data-i18n="nav_parsons">2. Parsons</span>
+        </button>
+        <button id="btn-mode-editor" class="px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 text-ide-muted hover:text-white">
+          💻 <span id="lbl-nav-editor" data-i18n="nav_editor">3. Micro-Editor</span>
+        </button>
+      </div>
+
+      <!-- Idioma y Barra de Progreso Global -->
+      <div class="flex items-center gap-3">
+        <!-- Selector Bilingüe ES / VA -->
+        <div class="flex items-center bg-ide-card rounded-lg border border-ide-border p-0.5 text-xs font-bold">
+          <button id="btn-lang-es" class="px-2.5 py-1 rounded bg-amber-500 text-slate-900 shadow">ES</button>
+          <button id="btn-lang-va" class="px-2.5 py-1 rounded text-ide-muted hover:text-white">VA</button>
+        </div>
+
+        <!-- Progreso global -->
+        <div class="hidden sm:flex flex-col items-end">
+          <span class="text-xs text-ide-muted flex items-center gap-1">
+            <span id="lbl-progress-title" data-i18n="progress_title">Progreso DAM:</span> 
+            <strong id="stat-total" class="text-amber-400">0/450</strong>
+          </span>
+          <div class="w-28 h-2 bg-ide-card rounded-full overflow-hidden border border-ide-border mt-1">
+            <div id="stat-bar" class="h-full bg-gradient-to-r from-amber-400 to-ide-success transition-all duration-300" style="width: 0%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- CONTENEDOR PRINCIPAL -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 flex-1 w-full">
+
+    <!-- Banner de estado del motor Java (lo gestiona setEngineStatus) -->
+    <div id="engine-status" class="hidden mb-4 px-4 py-2.5 rounded-xl border border-amber-500/30 bg-amber-500/10 text-xs font-medium items-center gap-2">
+      <span id="engine-status-text" class="text-amber-300"></span>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- BLOQUE 1: BLOQUES VISUALES JAVA                           -->
+    <!-- ========================================================= -->
+    <section id="panel-blocks" class="space-y-4">
+      <!-- Barra superior de Actividades y Filtros -->
+      <div class="bg-ide-surface border border-ide-border rounded-xl p-4 flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center gap-3 flex-1 min-w-[280px]">
+          <span class="text-sm font-semibold text-white whitespace-nowrap" id="lbl-blk-select" data-i18n="blk_select">Actividad:</span>
+          <select id="select-block-act" class="bg-ide-card border border-ide-border text-white text-sm rounded-lg px-3 py-2 flex-1 outline-none focus:border-ide-accent">
+            <!-- Se llena con JS -->
+          </select>
+        </div>
+
+        <!-- Filtros por nivel -->
+        <div class="flex items-center gap-1.5 bg-ide-card p-1 rounded-lg border border-ide-border text-xs font-medium">
+          <span class="px-2 text-ide-muted text-[11px]" id="lbl-flt-blk" data-i18n="flt_level">Nivel:</span>
+          <button id="flt-blk-all" data-i18n="btn_all" class="px-2.5 py-1 rounded bg-ide-surface text-white font-bold">Todas (150)</button>
+          <button id="flt-blk-easy" data-i18n="btn_easy" class="px-2.5 py-1 rounded text-emerald-400 hover:bg-ide-surface">Fácil (50)</button>
+          <button id="flt-blk-medium" data-i18n="btn_medium" class="px-2.5 py-1 rounded text-amber-400 hover:bg-ide-surface">Medio (50)</button>
+          <button id="flt-blk-hard" data-i18n="btn_hard" class="px-2.5 py-1 rounded text-rose-400 hover:bg-ide-surface">Avanzado (50)</button>
+        </div>
+      </div>
+
+      <!-- Descripción de la actividad actual -->
+      <div class="bg-gradient-to-r from-ide-surface to-ide-card border border-ide-border rounded-xl p-4 flex items-start justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2 mb-1">
+            <span id="blk-level-badge" class="text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">FÁCIL</span>
+            <h2 id="blk-act-title" class="text-base font-bold text-white">1. Declaración e inicialización de variables</h2>
+          </div>
+          <p id="blk-act-desc" class="text-sm text-ide-muted">Ensambla los bloques para declarar una variable entera 'edad' con valor 18 y mostrar su valor por consola.</p>
+        </div>
+        <div class="text-right whitespace-nowrap">
+          <span class="text-xs text-ide-muted block" id="lbl-blk-target" data-i18n="target_output">Salida esperada:</span>
+          <code id="blk-target-output" class="text-xs text-ide-success bg-ide-bg px-2 py-1 rounded border border-ide-border font-mono font-semibold">18</code>
+        </div>
+      </div>
+
+      <!-- Zona de Trabajo de Bloques -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        <!-- Paleta de Bloques Disponibles -->
+        <div class="lg:col-span-5 bg-ide-surface border border-ide-border rounded-xl p-4 flex flex-col">
+          <div class="flex items-center justify-between pb-3 border-b border-ide-border mb-3">
+            <h3 class="font-bold text-sm text-white flex items-center gap-2">
+              <span>📦</span> <span id="lbl-palette" data-i18n="palette">Paleta de Bloques Java</span>
+            </h3>
+            <span class="text-xs text-ide-muted" id="lbl-click-add" data-i18n="click_add">Haz clic para añadir</span>
+          </div>
+
+          <div id="palette-container" class="space-y-2 max-h-[380px] overflow-y-auto pr-1">
+            <!-- Bloques inyectados dinámicamente -->
+          </div>
+        </div>
+
+        <!-- Área de ensamblado y previsualización de código Java -->
+        <div class="lg:col-span-7 space-y-4">
+          <!-- Lienzo de ensamblado -->
+          <div class="bg-ide-surface border border-ide-border rounded-xl p-4">
+            <div class="flex items-center justify-between pb-3 border-b border-ide-border mb-3">
+              <h3 class="font-bold text-sm text-white flex items-center gap-2">
+                <span>🧩</span> <span id="lbl-workspace" data-i18n="workspace">Programa Ensamblado</span>
+                <span id="blk-counter" class="text-xs font-normal text-ide-muted">(0 bloques)</span>
+              </h3>
+              <div class="flex gap-2">
+                <button id="btn-ws-clear" class="text-xs px-2.5 py-1 rounded bg-ide-card hover:bg-rose-500/20 text-rose-400 border border-ide-border transition-colors">
+                  <span data-i18n="clear_blk">Vaciar</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Lista de bloques colocados -->
+            <div id="workspace-container" class="space-y-2 min-h-[140px] max-h-[220px] overflow-y-auto p-2 bg-ide-bg/60 rounded-lg border border-dashed border-ide-border/80">
+              <div id="workspace-placeholder" class="h-full flex items-center justify-center text-xs text-ide-muted italic py-6">
+                Haz clic en los bloques de la paleta para construir tu programa Java aquí.
+              </div>
+            </div>
+          </div>
+
+          <!-- Visor de código Java generado & Consola de ejecución -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Código Java Puro -->
+            <div class="bg-ide-surface border border-ide-border rounded-xl p-3 flex flex-col">
+              <div class="flex items-center justify-between pb-2 mb-2 border-b border-ide-border">
+                <span class="text-xs font-mono text-ide-muted flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-amber-400"></span> Main.java
+                </span>
+                <button id="btn-copy-code" data-i18n="copy_code" class="text-[11px] text-ide-accent hover:underline">Copiar</button>
+              </div>
+              <pre id="blocks-java-code" class="text-xs text-emerald-400 font-mono bg-ide-bg p-3 rounded-lg overflow-x-auto flex-1 h-[140px]">public class Main {
+    public static void main(String[] args) {
+        // Añade bloques para generar código...
+    }
+}</pre>
+            </div>
+
+            <!-- Terminal Simulada -->
+            <div class="bg-ide-surface border border-ide-border rounded-xl p-3 flex flex-col">
+              <div class="flex items-center justify-between pb-2 mb-2 border-b border-ide-border">
+                <span class="text-xs font-mono text-ide-muted flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-emerald-400"></span> Terminal JVM
+                </span>
+                <button id="btn-run-blocks" class="text-xs px-3 py-1 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-900 font-bold rounded shadow transition-transform active:scale-95">
+                  ▶ <span data-i18n="run_blk">Compilar y Ejecutar</span>
+                </button>
+              </div>
+              <div id="blocks-terminal" class="text-xs text-slate-300 font-mono bg-ide-bg p-3 rounded-lg flex-1 h-[140px] overflow-y-auto whitespace-pre-wrap">
+&gt; Esperando ejecución...
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- BLOQUE 2: PUZZLES DE PARSONS                              -->
+    <!-- ========================================================= -->
+    <section id="panel-parsons" class="space-y-4 hidden">
+      <!-- Selector y Filtros -->
+      <div class="bg-ide-surface border border-ide-border rounded-xl p-4 flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center gap-3 flex-1 min-w-[280px]">
+          <span class="text-sm font-semibold text-white whitespace-nowrap" id="lbl-par-select" data-i18n="par_select">Reto Parsons:</span>
+          <select id="select-parsons-act" class="bg-ide-card border border-ide-border text-white text-sm rounded-lg px-3 py-2 flex-1 outline-none focus:border-ide-accent">
+            <!-- Dinámico -->
+          </select>
+        </div>
+
+        <div class="flex items-center gap-1.5 bg-ide-card p-1 rounded-lg border border-ide-border text-xs font-medium">
+          <span class="px-2 text-ide-muted text-[11px]" id="lbl-flt-par" data-i18n="flt_level">Nivel:</span>
+          <button id="flt-par-all" data-i18n="btn_all" class="px-2.5 py-1 rounded bg-ide-surface text-white font-bold">Todas (150)</button>
+          <button id="flt-par-easy" data-i18n="btn_easy" class="px-2.5 py-1 rounded text-emerald-400 hover:bg-ide-surface">Fácil (50)</button>
+          <button id="flt-par-medium" data-i18n="btn_medium" class="px-2.5 py-1 rounded text-amber-400 hover:bg-ide-surface">Medio (50)</button>
+          <button id="flt-par-hard" data-i18n="btn_hard" class="px-2.5 py-1 rounded text-rose-400 hover:bg-ide-surface">Avanzado (50)</button>
+        </div>
+      </div>
+
+      <!-- Enunciado -->
+      <div class="bg-gradient-to-r from-ide-surface to-ide-card border border-ide-border rounded-xl p-4 flex items-start justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2 mb-1">
+            <span id="par-level-badge" class="text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">FÁCIL</span>
+            <h2 id="par-act-title" class="text-base font-bold text-white">1. Factorial de un número</h2>
+          </div>
+          <p id="par-act-desc" class="text-sm text-ide-muted">Ordena las líneas de código e indenta correctamente con tabulación. ¡Cuidado con las líneas trampa que no pertenecen al algoritmo!</p>
+        </div>
+        <div class="flex gap-2">
+          <button id="btn-par-reset" class="text-xs px-3 py-1.5 rounded-lg bg-ide-card border border-ide-border text-ide-muted hover:text-white transition-colors">
+            ↺ <span data-i18n="reset_par">Reiniciar</span>
+          </button>
+          <button id="btn-par-check" class="text-xs px-4 py-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-amber-400 text-slate-900 font-bold hover:brightness-110 shadow transition-all active:scale-95">
+            ✔ <span data-i18n="check_par">Validar Puzzle</span>
+          </button>
+          <button id="btn-par-compile" class="text-xs px-4 py-1.5 rounded-lg bg-ide-card border border-ide-border text-ide-muted hover:text-white font-bold shadow transition-all active:scale-95">
+            ⚙️ <span data-i18n="par_compile">Compilar código</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Tableros Parsons -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <!-- Fragmentos disponibles -->
+        <div class="bg-ide-surface border border-ide-border rounded-xl p-4 flex flex-col">
+          <div class="flex items-center justify-between pb-3 border-b border-ide-border mb-3">
+            <h3 class="font-bold text-sm text-white flex items-center gap-2">
+              <span>📑</span> <span id="lbl-par-bank" data-i18n="par_bank">Líneas disponibles (incluye distractores)</span>
+            </h3>
+            <span class="text-xs text-ide-muted" id="lbl-par-hint" data-i18n="par_hint">Haz clic para mover a la derecha</span>
+          </div>
+          <div id="parsons-bank" class="space-y-2 min-h-[300px] p-2 bg-ide-bg/40 rounded-lg">
+            <!-- Dinámico -->
+          </div>
+        </div>
+
+        <!-- Solución del Alumno (con indentación) -->
+        <div class="bg-ide-surface border border-ide-border rounded-xl p-4 flex flex-col">
+          <div class="flex items-center justify-between pb-3 border-b border-ide-border mb-3">
+            <h3 class="font-bold text-sm text-white flex items-center gap-2">
+              <span>🔨</span> <span id="lbl-par-target" data-i18n="par_target">Tu Algoritmo (Orden e Indentación)</span>
+            </h3>
+            <span class="text-xs text-amber-400 font-mono" id="lbl-par-indent-info" data-i18n="par_indent_info">Usa [ + ] / [ - ] para tabular</span>
+          </div>
+          <div id="parsons-target" class="space-y-2 min-h-[300px] p-2 bg-ide-bg rounded-lg border border-ide-border">
+            <!-- Dinámico -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Feedback de Validación -->
+      <div id="parsons-feedback" class="p-3 rounded-xl border border-ide-border bg-ide-surface text-xs font-mono hidden">
+        <!-- Mensajes de éxito o error sintáctico -->
+      </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- BLOQUE 3: MICRO-EDITOR & JUNIT RUNNER                     -->
+    <!-- ========================================================= -->
+    <section id="panel-editor" class="space-y-4 hidden">
+      <!-- Selector y Filtros -->
+      <div class="bg-ide-surface border border-ide-border rounded-xl p-4 flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center gap-3 flex-1 min-w-[280px]">
+          <span class="text-sm font-semibold text-white whitespace-nowrap" id="lbl-edt-select" data-i18n="edt_select">Ejercicio de Código:</span>
+          <select id="select-editor-act" class="bg-ide-card border border-ide-border text-white text-sm rounded-lg px-3 py-2 flex-1 outline-none focus:border-ide-accent">
+            <!-- Dinámico -->
+          </select>
+        </div>
+
+        <div class="flex items-center gap-1.5 bg-ide-card p-1 rounded-lg border border-ide-border text-xs font-medium">
+          <span class="px-2 text-ide-muted text-[11px]" id="lbl-flt-edt" data-i18n="flt_level">Nivel:</span>
+          <button id="flt-edt-all" data-i18n="btn_all" class="px-2.5 py-1 rounded bg-ide-surface text-white font-bold">Todas (150)</button>
+          <button id="flt-edt-easy" data-i18n="btn_easy" class="px-2.5 py-1 rounded text-emerald-400 hover:bg-ide-surface">Fácil (50)</button>
+          <button id="flt-edt-medium" data-i18n="btn_medium" class="px-2.5 py-1 rounded text-amber-400 hover:bg-ide-surface">Medio (50)</button>
+          <button id="flt-edt-hard" data-i18n="btn_hard" class="px-2.5 py-1 rounded text-rose-400 hover:bg-ide-surface">Avanzado (50)</button>
+        </div>
+      </div>
+
+      <!-- Enunciado y Botones de Plantilla -->
+      <div class="bg-gradient-to-r from-ide-surface to-ide-card border border-ide-border rounded-xl p-4 flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2 mb-1">
+            <span id="edt-level-badge" class="text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">FÁCIL</span>
+            <h2 id="edt-act-title" class="text-base font-bold text-white">1. esPar(int n)</h2>
+          </div>
+          <p id="edt-act-desc" class="text-sm text-ide-muted">Determina si un número entero es par utilizando el operador módulo.</p>
+        </div>
+
+        <!-- Botonera de control de código (Incluye Vaciar / Escribir a mano) -->
+        <div class="flex flex-wrap items-center gap-2">
+          <!-- BOTÓN SOLICITADO: Vaciar y escribir a mano -->
+          <button id="btn-edt-clear" class="text-xs px-3 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30 font-medium transition-all flex items-center gap-1.5 shadow-sm">
+            <span>🗑️</span> <span data-i18n="clear_manual">Vaciar código / Escribir a mano</span>
+          </button>
+          <!-- BOTÓN SOLICITADO: Ver y Comparar Solución Oficial -->
+          <button id="btn-edt-solution" class="text-xs px-3 py-1.5 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/40 font-semibold transition-all flex items-center gap-1.5 shadow-sm">
+            <span>💡</span> <span data-i18n="show_solution">Ver Solución / Comparar</span>
+          </button>
+          <button id="btn-edt-restore" class="text-xs px-3 py-1.5 rounded-lg bg-ide-card border border-ide-border text-ide-muted hover:text-white font-medium transition-colors">
+            ↺ <span data-i18n="restore_tpl">Restaurar plantilla</span>
+          </button>
+          <button id="btn-edt-run" class="text-xs px-4 py-1.5 rounded-lg bg-gradient-to-r from-ide-accent to-blue-500 text-slate-900 font-bold hover:brightness-110 shadow transition-all active:scale-95 flex items-center gap-1.5">
+            <span>⚡</span> <span data-i18n="run_tests">Ejecutar JUnit Tests</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Editor y Consola de Tests -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        <!-- Editor de Código -->
+        <div class="lg:col-span-7 bg-ide-surface border border-ide-border rounded-xl p-3 flex flex-col">
+          <div class="flex items-center justify-between pb-2 mb-2 border-b border-ide-border">
+            <span class="text-xs font-mono text-ide-muted flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-blue-400"></span> Solucion.java
+            </span>
+            <span class="text-[11px] text-ide-muted font-mono" id="lbl-editor-tip" data-i18n="editor_tip">Pulsa [Tab] para indentar 4 espacios</span>
+          </div>
+
+          <textarea id="java-code-editor" spellcheck="false" class="w-full h-80 bg-ide-bg text-emerald-300 font-mono text-xs sm:text-sm p-3.5 rounded-lg border border-ide-border/80 focus:border-ide-accent outline-none resize-none leading-relaxed"></textarea>
+        </div>
+
+        <!-- Terminal de Tests JUnit -->
+        <div class="lg:col-span-5 bg-ide-surface border border-ide-border rounded-xl p-3 flex flex-col">
+          <div class="flex items-center justify-between pb-2 mb-2 border-b border-ide-border">
+            <span class="text-xs font-mono text-ide-muted flex items-center gap-1.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-ide-success"></span> JUnit Test Runner
+            </span>
+            <span id="test-summary-badge" class="text-[11px] font-mono px-2 py-0.5 rounded bg-ide-card text-ide-muted">0/0 pasados</span>
+          </div>
+
+          <div id="junit-terminal" class="bg-ide-bg p-3 rounded-lg flex-1 h-80 overflow-y-auto space-y-2 font-mono text-xs">
+            <div class="text-ide-muted italic py-10 text-center">
+              Haz clic en "Ejecutar JUnit Tests" para comprobar tu solución frente a la batería de pruebas.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- PIE DE PÁGINA -->
+  <footer class="border-t border-ide-border bg-ide-surface mt-auto py-3 text-center text-xs text-ide-muted">
+    <div class="max-w-7xl mx-auto px-4 flex flex-wrap items-center justify-between gap-2">
+      <span>JavaLearn DAM · Ciclo Formativo de Grado Superior en Desarrollo de Aplicaciones Multiplataforma · <strong class="text-slate-300" id="lbl-footer-author" data-i18n="footer_author">Autora: Mara Vañó</strong></span>
+      <span class="text-amber-400/80 font-mono">450 Actividades (150 Fácil, 150 Medio, 150 Avanzado)</span>
+    </div>
+  </footer>
+
+  <!-- MODAL DE COMPARACIÓN DE SOLUCIÓN (BLOQUE 3) -->
+  <div id="solution-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-6 animate-fadeIn">
+    <div class="bg-ide-surface border border-ide-border rounded-2xl max-w-5xl w-full max-h-[92vh] flex flex-col shadow-2xl overflow-hidden">
+      <!-- Cabecera del modal -->
+      <div class="p-4 border-b border-ide-border flex items-center justify-between bg-ide-card">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">💡</span>
+          <div>
+            <h3 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+              <span id="lbl-modal-title" data-i18n="modal_title">Comparación de Solución Oficial</span>
+              <span id="modal-method-badge" class="font-mono text-xs text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/30">metodo()</span>
+            </h3>
+            <p id="lbl-modal-subtitle" class="text-xs text-ide-muted" data-i18n="modal_subtitle">Compara tu código actual con la solución Java de referencia.</p>
+          </div>
+        </div>
+        <button id="btn-modal-x" class="text-ide-muted hover:text-white text-lg p-1.5 rounded-lg hover:bg-ide-border transition-colors">✕</button>
+      </div>
+
+      <!-- Cuadros de comparación paralelos -->
+      <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-4 flex-1 overflow-y-auto">
+        <!-- Cuadro 1: Código escrito por el alumno -->
+        <div class="flex flex-col bg-ide-bg rounded-xl border border-ide-border p-3">
+          <div class="flex items-center justify-between pb-2 mb-2 border-b border-ide-border">
+            <span class="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+              <span>✍️</span> <span id="lbl-modal-user-code" data-i18n="modal_user_code">Tu código actual:</span>
+            </span>
+            <span id="modal-user-status" class="text-[11px] font-mono px-2 py-0.5 rounded bg-ide-card text-ide-muted">En edición</span>
+          </div>
+          <pre id="modal-user-preview" class="flex-1 font-mono text-xs text-slate-200 overflow-x-auto whitespace-pre-wrap p-2 bg-ide-surface/60 rounded-lg min-h-[260px]"></pre>
+        </div>
+
+        <!-- Cuadro 2: Solución oficial de referencia -->
+        <div class="flex flex-col bg-ide-bg rounded-xl border border-amber-500/30 p-3">
+          <div class="flex items-center justify-between pb-2 mb-2 border-b border-ide-border">
+            <span class="text-xs font-bold text-amber-300 flex items-center gap-1.5">
+              <span>🌟</span> <span id="lbl-modal-official-code" data-i18n="modal_official_code">Solución oficial de referencia:</span>
+            </span>
+            <button id="btn-copy-solution" data-i18n="btn_copy_solution" class="text-xs text-amber-400 hover:underline flex items-center gap-1">
+              📋 Copiar
+            </button>
+          </div>
+          <pre id="modal-official-preview" class="flex-1 font-mono text-xs text-emerald-300 overflow-x-auto whitespace-pre-wrap p-2 bg-ide-surface/60 rounded-lg min-h-[260px]"></pre>
+        </div>
+      </div>
+
+      <!-- Pie del modal con acciones rápidas -->
+      <div class="p-4 border-t border-ide-border bg-ide-card flex flex-wrap items-center justify-between gap-3">
+        <span class="text-xs text-ide-muted" id="lbl-modal-tip" data-i18n="modal_tip">
+          💡 Puedes copiar partes de la solución o transferirla directamente al editor para probarla.
+        </span>
+        <div class="flex items-center gap-2">
+          <button id="btn-modal-apply" class="text-xs px-3.5 py-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 font-semibold transition-all">
+            📥 <span data-i18n="btn_apply_solution">Copiar al editor</span>
+          </button>
+          <button id="btn-modal-close" class="text-xs px-4 py-1.5 rounded-lg bg-ide-border hover:bg-slate-700 text-white font-medium transition-colors">
+            <span data-i18n="btn_close_modal">Cerrar</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

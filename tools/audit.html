@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JavaLearn DAM — Auditoría de compatibilidad</title>
+<style>
+  /* Paleta ide.* (mismos colores que index.html) — CSS propio, cero CDN:
+     la página de auditoría debe funcionar aunque index.html aún no exista. */
+  :root{
+    --bg:#181825; --surface:#1e1e2e; --card:#252538; --border:#313244;
+    --accent:#89b4fa; --success:#a6e3a1; --warning:#f9e2af; --danger:#f38ba8;
+    --text:#cdd6f4; --muted:#9399b2;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background:var(--bg); color:var(--text);
+    font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    font-size:14px; line-height:1.45; padding:24px 20px 60px;
+  }
+  code,pre,.mono,td.mono{ font-family:"Fira Code",ui-monospace,Consolas,monospace; }
+  header{ max-width:1200px; margin:0 auto 18px; }
+  header h1{ font-size:22px; margin:0 0 4px; color:#fff; letter-spacing:.2px; }
+  header h1 span{ color:var(--warning); }
+  header p{ margin:0; color:var(--muted); font-size:13px; }
+  .wrap{ max-width:1200px; margin:0 auto; display:flex; flex-direction:column; gap:16px; }
+  .hidden{ display:none !important; }
+  .card{
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:10px; padding:16px;
+  }
+  .card h2{ margin:0 0 10px; font-size:14px; text-transform:uppercase;
+    letter-spacing:.08em; color:var(--muted); font-weight:600; }
+  .row{ display:flex; align-items:center; justify-content:space-between; gap:12px; }
+  .small{ font-size:12px; color:var(--muted); }
+  #stage{ font-size:13px; color:var(--accent); overflow:hidden; text-overflow:ellipsis;
+    white-space:nowrap; }
+  #counter{ font-size:13px; color:var(--text); white-space:nowrap; }
+  .track{
+    height:12px; background:#11111b; border:1px solid var(--border);
+    border-radius:99px; overflow:hidden; margin:10px 0 8px;
+  }
+  #bar{
+    height:100%; width:0%;
+    background:linear-gradient(90deg,var(--accent),#74c7ec);
+    transition:width .25s ease;
+  }
+  button{
+    background:var(--card); color:var(--text); border:1px solid var(--border);
+    border-radius:8px; padding:7px 14px; font-size:13px; cursor:pointer;
+    font-family:inherit;
+  }
+  button:hover:not(:disabled){ border-color:var(--accent); color:#fff; }
+  button:disabled{ opacity:.5; cursor:not-allowed; }
+  .alert{
+    max-width:1200px; margin:0 auto 16px; padding:16px 18px; border-radius:10px;
+    font-size:15px; font-weight:600;
+  }
+  .alert.error{ background:rgba(243,139,168,.12); border:1px solid rgba(243,139,168,.4);
+    color:#f38ba8; }
+  .alert.warn{ background:rgba(249,226,175,.10); border:1px solid rgba(249,226,175,.4);
+    color:#f9e2af; }
+  .alert.info{ background:rgba(137,180,250,.10); border:1px solid rgba(137,180,250,.4);
+    color:#89b4fa; }
+  .cards{ display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px; }
+  .stat{ background:var(--surface); border:1px solid var(--border); border-radius:10px;
+    padding:16px; }
+  .stat-label{ font-size:12px; text-transform:uppercase; letter-spacing:.08em;
+    color:var(--muted); }
+  .stat-value{ font-size:30px; font-weight:700; margin-top:6px; color:#fff; }
+  .stat-value.ok{ color:var(--success); }
+  .stat-value.bad{ color:var(--danger); }
+  .stat-sub{ font-size:12px; color:var(--muted); margin-top:4px; }
+  #log{
+    background:#11111b; border:1px solid var(--border); border-radius:8px;
+    padding:10px 12px; height:220px; overflow-y:auto; font-size:12.5px;
+    font-family:"Fira Code",ui-monospace,Consolas,monospace; white-space:pre-wrap;
+    word-break:break-word;
+  }
+  .log-line{ padding:1px 0; color:var(--muted); }
+  .log-line.ok{ color:var(--success); }
+  .log-line.err{ color:var(--danger); }
+  .log-line.warn{ color:var(--warning); }
+  .log-line.info{ color:var(--accent); }
+  .table-wrap{ overflow-x:auto; }
+  table{ width:100%; border-collapse:collapse; font-size:12.5px; }
+  th,td{ text-align:left; padding:8px 10px; border-bottom:1px solid var(--border);
+    vertical-align:top; }
+  th{ color:var(--muted); font-size:11px; text-transform:uppercase;
+    letter-spacing:.06em; background:var(--surface); }
+  td.mono{ white-space:pre-wrap; word-break:break-word; max-width:460px; }
+  .pill{ display:inline-block; padding:2px 8px; border-radius:99px; font-size:11px;
+    font-weight:700; border:1px solid transparent; white-space:nowrap; }
+  .pill.pass{ background:rgba(166,227,161,.12); color:var(--success);
+    border-color:rgba(166,227,161,.35); }
+  .pill.fail{ background:rgba(243,139,168,.12); color:var(--danger);
+    border-color:rgba(243,139,168,.35); }
+  .empty{ color:var(--muted); font-style:italic; font-size:13px; }
+  footer{ max-width:1200px; margin:8px auto 0; color:var(--muted); font-size:12px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>JavaLearn DAM <span>— Auditoría de compatibilidad</span></h1>
+  <p>Verificación de los 150 retos de Bloques y los 150 del Micro-Editor con el motor
+     Java real (javac + TeaVM → WebAssembly, <code>@live-codes/java-wasm</code>).</p>
+</header>
+
+<div id="alert" class="alert hidden"></div>
+
+<div class="wrap">
+
+  <div class="card">
+    <div class="row">
+      <span id="stage">Preparando la auditoría…</span>
+      <span id="counter">0 / 0</span>
+    </div>
+    <div class="track"><div id="bar"></div></div>
+    <div class="row small">
+      <span id="engine-msg">Motor: sin cargar (la primera vez descarga ~7,7 MB)</span>
+      <button id="btn-retry" type="button" disabled>Repetir auditoría</button>
+    </div>
+  </div>
+
+  <div class="cards">
+    <div class="stat">
+      <div class="stat-label">Bloques</div>
+      <div id="card-blocks" class="stat-value">—</div>
+      <div id="card-blocks-sub" class="stat-sub">esperando</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Micro-Editor</div>
+      <div id="card-editor" class="stat-value">—</div>
+      <div id="card-editor-sub" class="stat-sub">esperando</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Errores</div>
+      <div id="card-errors" class="stat-value">0</div>
+      <div id="card-errors-sub" class="stat-sub">fallos detectados</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Log en vivo</h2>
+    <div id="log"></div>
+  </div>
+
+  <div class="card">
+    <h2>Tabla de fallos</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Modo</th>
+            <th>ID(s)</th>
+            <th>Función</th>
+            <th>Estado</th>
+            <th>Esperado / Obtenido / Detail</th>
+          </tr>
+        </thead>
+        <tbody id="failures-body">
+          <tr><td colspan="5" class="empty">Sin fallos todavía.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<footer>Servida por HTTP: <code>tools/audit.html</code> · Resultados expuestos en
+<code>window.__audit</code> para automatización.</footer>
+
+<script type="module">
+/* ==========================================================================
+   tools/audit.html — Auditoría de compatibilidad datos ↔ motor Java real
+   Importa SOLO módulos del proyecto (rutas relativas desde tools/).
+   El CSS es propio (sin CDN) para no depender de index.html.
+   ========================================================================== */
+
+import { BLOCK_ACTIVITIES, EDITOR_ACTIVITIES } from '../data/activities.js';
+import { JAVA_PRELUDE } from '../data/java-support.js';
+import { escapeHtml } from '../js/utils.js';
+
+/* ---- Contrato (INTERFACES.md) -------------------------------------------
+   java-engine.js : isEngineSupported(), runJava(source, opts, onProgress),
+                    classifyResult(res)  -> {status, detail}
+   blocks-runner  : buildMainSource(workspaceItems)
+   junit-runner   : buildTestDriver(act, userCode)
+   Los runners se importan de forma diferida para poder mostrar un error
+   claro en pantalla si aún no existen / falla su sintaxis.                */
+let isEngineSupported, runJava, classifyResult, buildMainSource, buildTestDriver;
+
+/* ---- Estado expuesto a automatización ----------------------------------- */
+const audit = {
+  done: false,
+  aborted: false,
+  total: 0,
+  completed: 0,
+  blocks: [],
+  editor: [],
+  failures: []
+};
+window.__audit = audit;
+
+/* ---- Atalayas de DOM ---------------------------------------------------- */
+const $ = (id) => document.getElementById(id);
+const elStage = $('stage'), elCounter = $('counter'), elBar = $('bar');
+const elEngine = $('engine-msg'), elAlert = $('alert'), elLog = $('log');
+const elCardBlocks = $('card-blocks'), elCardBlocksSub = $('card-blocks-sub');
+const elCardEditor = $('card-editor'), elCardEditorSub = $('card-editor-sub');
+const elCardErrors = $('card-errors'), elCardErrorsSub = $('card-errors-sub');
+const elFailBody = $('failures-body'), elRetry = $('btn-retry');
+
+let running = false;
+
+/* ---- Utilidades de UI --------------------------------------------------- */
+function trunc(s, n) {
+  n = n || 300;
+  s = String(s == null ? '' : s);
+  return s.length > n ? s.slice(0, n) + '…' : s;
+}
+
+function showAlert(msg, kind) {
+  kind = kind || 'error';
+  elAlert.className = 'alert ' + kind;
+  elAlert.innerHTML = escapeHtml(msg);
+}
+
+function hideAlert() { elAlert.className = 'alert hidden'; }
+
+function logLine(text, kind) {
+  const div = document.createElement('div');
+  div.className = 'log-line ' + (kind || '');
+  div.innerHTML = escapeHtml(trunc(text, 500));
+  elLog.appendChild(div);
+  while (elLog.childNodes.length > 400) elLog.removeChild(elLog.firstChild);
+  elLog.scrollTop = elLog.scrollHeight;
+}
+
+function setStage(text) { elStage.textContent = text; }
+
+function setEngineMsg(text) { elEngine.textContent = text; }
+
+function updateProgress() {
+  const pct = audit.total ? Math.round((audit.completed / audit.total) * 100) : 0;
+  elBar.style.width = pct + '%';
+  elCounter.textContent = audit.completed + ' / ' + audit.total + '  (' + pct + '%)';
+
+  const bOk = audit.blocks.filter(b => b.status === 'PASS').length;
+  const eOk = audit.editor.filter(e => e.status === 'PASS').length;
+  elCardBlocks.textContent = bOk + '/150';
+  elCardBlocks.className = 'stat-value ' +
+    (audit.blocks.length === 0 ? '' : (bOk === 150 ? 'ok' : 'bad'));
+  elCardBlocksSub.textContent = audit.blocks.length + ' auditados · ' +
+    (audit.blocks.length - bOk) + ' con problema';
+  elCardEditor.textContent = eOk + '/150';
+  elCardEditor.className = 'stat-value ' +
+    (audit.editor.length === 0 ? '' : (eOk === 150 ? 'ok' : 'bad'));
+  elCardEditorSub.textContent = audit.editor.length + ' auditados · ' +
+    (audit.editor.length - eOk) + ' con problema';
+  elCardErrors.textContent = String(audit.failures.length);
+  elCardErrors.className = 'stat-value ' + (audit.failures.length ? 'bad' : 'ok');
+}
+
+function addFailureRow(f) {
+  if (!elFailBody.dataset.init) {
+    elFailBody.innerHTML = '';
+    elFailBody.dataset.init = '1';
+  }
+  const tr = document.createElement('tr');
+  tr.innerHTML =
+    '<td>' + escapeHtml(f.mode) + '</td>' +
+    '<td class="mono">' + escapeHtml(f.ids.join(',')) + '</td>' +
+    '<td class="mono">' + escapeHtml(f.name) + '</td>' +
+    '<td><span class="pill fail">' + escapeHtml(f.status) + '</span></td>' +
+    '<td class="mono">' + escapeHtml(trunc(f.detail, 300)) + '</td>';
+  elFailBody.appendChild(tr);
+}
+
+function resetUI() {
+  hideAlert();
+  elLog.innerHTML = '';
+  elFailBody.innerHTML = '<tr><td colspan="5" class="empty">Sin fallos todavía.</td></tr>';
+  delete elFailBody.dataset.init;
+  elBar.style.width = '0%';
+  elCounter.textContent = '0 / 0';
+  elCardBlocks.textContent = '—';
+  elCardEditor.textContent = '—';
+  elCardErrors.textContent = '0';
+  elCardBlocksSub.textContent = 'esperando';
+  elCardEditorSub.textContent = 'esperando';
+  elCardErrorsSub.textContent = 'fallos detectados';
+}
+
+function resetAudit() {
+  audit.done = false;
+  audit.aborted = false;
+  audit.total = 0;
+  audit.completed = 0;
+  audit.blocks.length = 0;
+  audit.editor.length = 0;
+  audit.failures.length = 0;
+}
+
+const yieldUI = () => new Promise(r => setTimeout(r, 50));
+
+/* onProgress del motor: etapa actual (init/compile/generate/run) */
+function onEngineProgress(p) {
+  if (!p) return;
+  if (p.stage === 'init') {
+    setEngineMsg('Cargando motor… (javac + TeaVM, ~7,7 MB la primera vez)');
+  } else {
+    setEngineMsg('Motor: ' + p.stage + (p.detail ? ' — ' + p.detail : ''));
+  }
+}
+
+/* ==========================================================================
+   A) Auditoría de BLOQUES — deduplicación por código+esperado
+   ========================================================================== */
+function buildBlockSource(act) {
+  const items = act.palette.map(p => ({ code: p.code }));
+  return JAVA_PRELUDE + buildMainSource(items);
+}
+
+function groupBlockActivities() {
+  const map = new Map();
+  for (const act of BLOCK_ACTIVITIES) {
+    const code = act.palette.map(p => p.code).join('\n');
+    const key = code + ' ' + act.expected;
+    let g = map.get(key);
+    if (!g) {
+      g = { source: null, expected: act.expected, name: act.funcName, ids: [], _act: act };
+      map.set(key, g);
+    }
+    g.ids.push(act.id);
+  }
+  return Array.from(map.values());
+}
+
+function auditBlocks() {
+  return new Promise((resolve, reject) => {
+    const groups = groupBlockActivities();
+    /* La fuente se construye UNA vez por par único: si buildMainSource falla
+       por nuestro propio código, se registra como HARNESS_ERROR. */
+    for (const g of groups) {
+      try {
+        g.source = buildBlockSource(g._act);
+      } catch (e) {
+        g.source = null;
+        g.buildError = String((e && e.message) || e);
+      }
+    }
+    logLine('BLOQUES: ' + BLOCK_ACTIVITIES.length + ' actividades → ' +
+            groups.length + ' compilaciones únicas (dedup por código+esperado).', 'info');
+
+    (async () => {
+      for (const g of groups) {
+        setStage('Bloques [' + g.ids.join(',') + '] ' + g.name);
+        let status, actual = null, detail = '';
+        try {
+          if (!g.source) throw new Error('buildMainSource falló: ' + g.buildError);
+          const res = await runJava(g.source, {}, onEngineProgress);
+          const cl = classifyResult(res);
+          if (cl.status === 'ok') {
+            const out = String(res.stdout || '').trim();
+            const exp = String(g.expected || '').trim();
+            if (out === exp) {
+              status = 'PASS';
+            } else {
+              status = 'OUTPUT_MISMATCH';
+              actual = out;
+              detail = 'esperado: ' + JSON.stringify(exp) +
+                       ' | obtenido: ' + JSON.stringify(out);
+            }
+          } else if (cl.status === 'compile-error') {
+            status = 'COMPILE_ERROR';
+            detail = cl.detail || '';
+          } else {
+            status = 'RUNTIME_ERROR';
+            detail = cl.detail || '';
+          }
+        } catch (e) {
+          if (e && e.code === 'ENGINE_TIMEOUT') {
+            status = 'TIMEOUT';
+            detail = e.message || 'ENGINE_TIMEOUT (20s)';
+          } else if (e && e.code === 'ENGINE_UNAVAILABLE') {
+            reject(e); /* aborta: sin motor no hay auditoría */
+            return;
+          } else {
+            status = 'HARNESS_ERROR';
+            detail = String((e && e.message) || e);
+          }
+        }
+
+        for (const id of g.ids) {
+          audit.blocks.push({
+            id: id,
+            ids: g.ids.slice(),
+            name: g.name,
+            status: status,
+            expected: g.expected,
+            actual: actual,
+            detail: detail
+          });
+        }
+        if (status !== 'PASS') {
+          const f = {
+            mode: 'Bloques',
+            ids: g.ids.slice(),
+            name: g.name,
+            status: status,
+            detail: detail || ('esperado: ' + JSON.stringify(g.expected))
+          };
+          audit.failures.push(f);
+          addFailureRow(f);
+          logLine('✗ Bloques [' + g.ids.join(',') + '] ' + g.name + ' → ' + status +
+                  (detail ? ' — ' + trunc(detail, 160) : ''), 'err');
+        } else {
+          logLine('✓ Bloques [' + g.ids.join(',') + '] ' + g.name + ' → PASS', 'ok');
+        }
+
+        audit.completed++;
+        updateProgress();
+        await yieldUI();
+      }
+      resolve();
+    })().catch(reject);
+  });
+}
+
+/* ==========================================================================
+   B) Auditoría del MICRO-EDITOR — sin dedup (150 métodos distintos)
+   ========================================================================== */
+function auditEditor() {
+  return new Promise((resolve, reject) => {
+    logLine('EDITOR: ' + EDITOR_ACTIVITIES.length + ' soluciones oficiales a validar.', 'info');
+
+    (async () => {
+      for (const act of EDITOR_ACTIVITIES) {
+        setStage('Editor #' + act.id + ' ' + act.funcName);
+        let status, failures = [], detail = '';
+        try {
+          const source = buildTestDriver(act, act.officialSolution);
+          const res = await runJava(source, {}, onEngineProgress);
+          const cl = classifyResult(res);
+          if (cl.status === 'ok') {
+            const lines = String(res.stdout || '').split('\n');
+            let passCount = 0;
+            for (const l of lines) {
+              if (l.indexOf('TEST|') !== 0) continue;
+              const parts = l.split('|');
+              if (parts[2] === 'PASS') {
+                passCount++;
+              } else if (parts[2] === 'FAIL') {
+                failures.push({ n: parts[1], kind: 'FAIL',
+                                expected: parts[3], actual: parts[4] });
+              } else if (parts[2] === 'ERROR') {
+                failures.push({ n: parts[1], kind: 'ERROR', msg: parts[3] });
+              }
+            }
+            if (passCount === act.tests.length && failures.length === 0) {
+              status = 'PASS';
+            } else {
+              status = 'TESTS_FAILED';
+              detail = 'PASS ' + passCount + '/' + act.tests.length + ' · ' +
+                failures.map(f => f.kind === 'FAIL'
+                  ? ('#' + f.n + ' esperado=' + JSON.stringify(f.expected) +
+                     ' obtenido=' + JSON.stringify(f.actual))
+                  : ('#' + f.n + ' error=' + JSON.stringify(f.msg))
+                ).join(' ; ');
+            }
+          } else if (cl.status === 'compile-error') {
+            status = 'COMPILE_ERROR';
+            detail = 'La solución oficial NO compila en el subconjunto TeaVM: ' +
+                     (cl.detail || '');
+          } else {
+            status = 'RUNTIME_ERROR';
+            detail = cl.detail || '';
+          }
+        } catch (e) {
+          if (e && e.code === 'ENGINE_TIMEOUT') {
+            status = 'TIMEOUT';
+            detail = e.message || 'ENGINE_TIMEOUT (20s)';
+          } else if (e && e.code === 'ENGINE_UNAVAILABLE') {
+            reject(e);
+            return;
+          } else {
+            status = 'HARNESS_ERROR';
+            detail = String((e && e.message) || e);
+          }
+        }
+
+        audit.editor.push({
+          id: act.id,
+          name: act.funcName,
+          status: status,
+          failures: failures,
+          detail: detail
+        });
+        if (status !== 'PASS') {
+          const f = {
+            mode: 'Editor',
+            ids: [act.id],
+            name: act.funcName,
+            status: status,
+            detail: detail
+          };
+          audit.failures.push(f);
+          addFailureRow(f);
+          logLine('✗ Editor #' + act.id + ' ' + act.funcName + ' → ' + status +
+                  (detail ? ' — ' + trunc(detail, 160) : ''), 'err');
+        } else {
+          logLine('✓ Editor #' + act.id + ' ' + act.funcName + ' → PASS (' +
+                  act.tests.length + ' tests)', 'ok');
+        }
+
+        audit.completed++;
+        updateProgress();
+        await yieldUI();
+      }
+      resolve();
+    })().catch(reject);
+  });
+}
+
+/* ==========================================================================
+   C) Ejecución secuencial + finalización
+   ========================================================================== */
+function finish() {
+  const bOk = audit.blocks.filter(b => b.status === 'PASS').length;
+  const eOk = audit.editor.filter(e => e.status === 'PASS').length;
+  const resumen = {
+    blocksOk: bOk,
+    blocksTotal: 150,
+    editorOk: eOk,
+    editorTotal: 150,
+    errores: audit.failures.length,
+    completados: audit.completed,
+    total: audit.total,
+    aborted: audit.aborted
+  };
+  audit.done = true;
+  running = false;
+  elRetry.disabled = false;
+  setStage(audit.aborted ? 'Auditoría ABORTADA' : 'Auditoría completada');
+  setEngineMsg('Motor: ' + (audit.aborted ? 'detenido por error' : 'liberado'));
+  updateProgress();
+  console.log('[AUDIT] DONE', resumen);
+  logLine('DONE ' + JSON.stringify(resumen), audit.failures.length ? 'warn' : 'ok');
+  return resumen;
+}
+
+async function startAudit() {
+  if (running) return;
+  running = true;
+  elRetry.disabled = true;
+  resetUI();
+  resetAudit();
+
+  /* Motor soportado solo bajo HTTP(S) */
+  let supported = false;
+  try { supported = isEngineSupported(); } catch (e) { supported = false; }
+  if (!supported) {
+    showAlert('⚠ El motor Java NO puede cargarse en este contexto (' +
+      location.protocol + '). Sirve el proyecto por HTTP (GitHub Pages / Live Server) ' +
+      'y vuelve a abrir tools/audit.html — desde file:// no se permite el Worker ni ' +
+      'la descarga de los ~7,7 MB del motor.', 'warn');
+    audit.aborted = true;
+    logLine('Motor no soportado (' + location.protocol + '). Auditoría abortada.', 'err');
+    finish();
+    return;
+  }
+
+  const groups = groupBlockActivities();
+  audit.total = groups.length + EDITOR_ACTIVITIES.length;
+  updateProgress();
+
+  logLine('Motor soportado ✓ — iniciando auditoría (' + audit.total +
+          ' ejecuciones).', 'info');
+  setStage('Cargando motor…');
+
+  try {
+    await auditBlocks();
+    await auditEditor();
+  } catch (e) {
+    if (e && e.code === 'ENGINE_UNAVAILABLE') {
+      audit.aborted = true;
+      showAlert('ENGINE_UNAVAILABLE: no se pudo cargar el motor Java ' +
+        '(sin red, CDN bloqueado o Worker no disponible). ' + (e.message || ''), 'error');
+      logLine('ENGINE_UNAVAILABLE — auditoría abortada: ' + (e.message || ''), 'err');
+    } else {
+      audit.aborted = true;
+      showAlert('Error inesperado en la auditoría: ' + String((e && e.message) || e), 'error');
+      logLine('Error fatal: ' + String((e && e.stack) || e), 'err');
+    }
+  }
+  finish();
+}
+
+/* ==========================================================================
+   Arranque: carga (diferida) de los runners contra el contrato y AUTO-START
+   ========================================================================== */
+try {
+  const mods = await Promise.all([
+    import('../js/runner/java-engine.js'),
+    import('../js/runner/blocks-runner.js'),
+    import('../js/runner/junit-runner.js')
+  ]);
+  const engine = mods[0], blocksRunner = mods[1], junitRunner = mods[2];
+  isEngineSupported = engine.isEngineSupported;
+  runJava = engine.runJava;
+  classifyResult = engine.classifyResult;
+  buildMainSource = blocksRunner.buildMainSource;
+  buildTestDriver = junitRunner.buildTestDriver;
+
+  if (typeof runJava !== 'function' || typeof classifyResult !== 'function' ||
+      typeof isEngineSupported !== 'function' || typeof buildMainSource !== 'function' ||
+      typeof buildTestDriver !== 'function') {
+    throw new Error('Los runners no exponen todas las funciones del contrato ' +
+      '(runJava/classifyResult/isEngineSupported/buildMainSource/buildTestDriver).');
+  }
+} catch (e) {
+  showAlert('No se pudieron cargar los módulos runner: ' +
+    String((e && e.message) || e) + ' — revisa js/runner/ (contrato en ' +
+    'tools/INTERFACES.md).', 'error');
+  logLine('Fallo de importación: ' + String((e && e.message) || e), 'err');
+  audit.aborted = true;
+  audit.done = true;
+  setStage('Error de carga — no se puede auditar');
+  elRetry.disabled = true;
+  throw e;
+}
+
+elRetry.addEventListener('click', () => { startAudit(); });
+
+/* AUTO-START: la página se abre expresamente para auditar */
+startAudit();
+</script>
+
+</body>
+</html>
