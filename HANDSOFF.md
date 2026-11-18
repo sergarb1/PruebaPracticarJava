@@ -7,7 +7,7 @@ Handoff para la próxima sesión. Actualizar al terminar cada tarea grande.
 - App estática con 450 retos (Bloques / Parsons / Micro-Editor) y motor Java WASM real.
 - **Landing de bienvenida**: panel `panel-home` + pestaña «Inicio»; se muestra solo la 1ª vez (flag `javalearn_dam_seen` en localStorage) y siempre vuelve desde la pestaña.
 - **Tema claro/oscuro**: interruptor 🌙/☀️ en cabecera; variables CSS en `css/theme.css` (`:root` oscuro, `[data-theme="light"]` claro); persistencia en `javalearn_dam_theme`; respeta `prefers-color-scheme` en la 1ª visita; `theme-color` sincronizado.
-- **PWA completa**: `manifest.webmanifest` (standalone, 3 iconos) + `icons/` (SVG fuente → PNG con inkscape) + `sw.js` con 3 capas de caché: shell (precache + stale-while-revalidate), CDN (Tailwind/Fonts, respuestas opacas) y motor unpkg (cache-first). Offline verificado con recarga en modo red caído.
+- **PWA completa**: `manifest.webmanifest` (standalone, 3 iconos) + `icons/` (SVG fuente → PNG con inkscape) + `sw.js` con 3 capas de caché: shell (precache + stale-while-revalidate), CDN (Tailwind/Fonts, respuestas opacas) y motor unpkg (cache-first). Offline verificado con recarga en modo red caído. **Botón «📱 Instalar»** en la cabecera (`initInstall` en `app.js`, `beforeinstallprompt`; oculto en iOS Safari, que no emite el evento).
 - **Auditoría 300/300 PASS** (ver «Qué se hizo»). Lighthouse: 100/100/100/100 (a11y/best-practices/SEO/agentic).
 - **MCPs globales**: `packet-tracer`, `chrome-devtools` (ya cargado en OpenCode), `codegraph` (índice `.codegraph/` refrescado).
 - **Docs**: `AGENTS.md` (convenciones) y este `HANDSOFF.md`.
@@ -26,6 +26,7 @@ Handoff para la próxima sesión. Actualizar al terminar cada tarea grande.
    - Matrices 2D (5 Bloques): eran daño colateral del trap; sin cambios en el reto.
    - `java-engine.runJava`: reintenta **una vez** con `resetEngine()` si el Worker muere («could not fetch message»).
 8. **PWA**: manifest + iconos + SW con precache de shell/CDN; `meta description`; `aria-label` i18n en los 3 selects (`data-i18n-aria`); contraste del footer corregido (`text-ide-warning/80` → sin `/80`).
+9. **Botón «📱 Instalar»** en la cabecera: `initInstall()` en `js/app.js` con `beforeinstallprompt` (aparece solo si el navegador la considera instalable; se oculta con `appinstalled` o tras usar el prompt; iOS Safari no emite el evento → instructions nativas Compartir → Añadir a pantalla inicio). i18n `install_btn`/`install_aria` (101/101 claves).
 
 ## Pendientes / ideas futuras
 

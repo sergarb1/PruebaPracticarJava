@@ -99,7 +99,9 @@
         junit_compiling: '⚙️ Compilando y ejecutando tus tests con javac real...',
         sel_aria_blocks: 'Seleccionar actividad de Bloques',
         sel_aria_parsons: 'Seleccionar actividad de Parsons',
-        sel_aria_editor: 'Seleccionar actividad de Micro-Editor'
+        sel_aria_editor: 'Seleccionar actividad de Micro-Editor',
+        install_btn: 'Instalar',
+        install_aria: 'Instalar la app en tu dispositivo'
       },
       va: {
         author_badge: 'Autora: Mara Vañó',
@@ -200,6 +202,8 @@
         junit_compiling: '⚙️ Compilant i executant els teus tests amb javac real...',
         sel_aria_blocks: 'Seleccionar activitat de Bloques',
         sel_aria_parsons: 'Seleccionar activitat de Parsons',
-        sel_aria_editor: 'Seleccionar activitat de Micro-Editor'
+        sel_aria_editor: 'Seleccionar activitat de Micro-Editor',
+        install_btn: 'Instal·lar',
+        install_aria: 'Instal·lar l\'app al teu dispositiu'
       }
     };

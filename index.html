@@ -105,6 +105,11 @@
         <!-- Interruptor de tema claro/oscuro -->
         <button id="btn-theme" class="px-2.5 py-1.5 rounded-lg bg-ide-card border border-ide-border text-sm transition-colors hover:bg-ide-border" aria-label="Cambiar a tema claro">☀️</button>
 
+        <!-- Instalar PWA: solo se muestra si el navegador emite beforeinstallprompt -->
+        <button id="btn-install" class="hidden px-2.5 py-1.5 rounded-lg bg-ide-card border border-ide-border text-sm transition-colors hover:bg-ide-border" aria-label="Instalar la app en tu dispositivo" data-i18n-aria="install_aria">
+          📱<span class="hidden sm:inline ml-1" data-i18n="install_btn">Instalar</span>
+        </button>
+
         <!-- Progreso global -->
         <div class="hidden sm:flex flex-col items-end">
           <span class="text-xs text-ide-muted flex items-center gap-1">

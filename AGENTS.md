@@ -27,7 +27,8 @@ data/
   activities.js       ← generadores de las 3×150 actividades
   java-support.js     ← preludio Java (clase Alumno)
 js/
-  app.js              ← orquestador: switchMode, idioma, tema, intro 1ª vez, SW
+  app.js              ← orquestador: switchMode, idioma, tema, intro 1ª vez,
+                         instalación PWA (beforeinstallprompt), registro SW
   i18n.js             ← t()/tf()/setLanguage(); actualiza [data-i18n] y despacha 'languagechange'
   state.js            ← progreso en localStorage ('javalearn_dam_prog') + barra x/450
   blocks.js parsons.js editor.js home.js   ← un módulo por panel
@@ -48,7 +49,7 @@ legacy/
 
 - **Módulos ES nativos** (`import`/`export`), sin bundler. Un fichero = una responsabilidad.
 - **Sin atributos inline** (`onclick=...`): listeners con `addEventListener`.
-- **i18n ES/VA**: todo texto visible lleva `data-i18n="clave"` en el HTML y la clave existe en `data/i18n-dict.js` **en `es` y en `va`**. Textos dinámicos usan `t('clave')` / `tf('clave', {var})`.
+- **i18n ES/VA**: todo texto visible lleva `data-i18n="clave"` en el HTML y la clave existe en `data/i18n-dict.js` **en `es` y en `va`**. Textos dinámicos usan `t('clave')` / `tf('clave', {var})`. Atributos `aria-label` traducibles: `data-i18n-aria="clave"`.
 - **Paleta de tema**: las clases Tailwind `ide.*` (`bg-ide-surface`, `text-ide-muted`…) mapean a variables CSS (`var(--ide-*)`) definidas en `css/theme.css` bajo `:root` (oscuro) y `[data-theme="light"]` (claro). **No colores hardcodeados** en paneles nuevos; usar siempre las clases `ide.*` o var() directa.
 - **Progreso**: solo vía `markCompleted(section, id)` de `state.js`.
 - **Motor**: toda ejecución de Java pasa por `runner/java-engine.js` (`runJava`). No crear accesos directos al CDN.

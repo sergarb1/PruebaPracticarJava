@@ -87,6 +87,43 @@ function initTheme() {
 }
 
 /* --------------------------------------------------------------------------
+   Instalación PWA (botón «Instalar»):
+   - Solo los navegadores con beforeinstallprompt (Chromium). iOS Safari no
+     emite el evento: el botón permanece oculto (Compartir → Añadir a
+     pantalla inicio).
+   - El botón aparece cuando el navegador considera la app instalable
+     (manifest + SW activos) y se oculta tras instalar o usar el prompt.
+   -------------------------------------------------------------------------- */
+function initInstall() {
+  const btn = document.getElementById('btn-install');
+  if (!btn || !('onbeforeinstallprompt' in window)) return;
+
+  let deferred = null;
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault(); // no mostramos el mini-infobar del navegador
+    deferred = e;
+    btn.classList.remove('hidden');
+  });
+
+  btn.addEventListener('click', async () => {
+    if (!deferred) return;
+    const ev = deferred;
+    deferred = null;
+    try {
+      ev.prompt();
+      await ev.userChoice; // 'accepted' | 'dismissed'
+    } catch (err) { /* prompt cancelado o no soportado */ }
+    btn.classList.add('hidden');
+  });
+
+  window.addEventListener('appinstalled', () => {
+    deferred = null;
+    btn.classList.add('hidden');
+  });
+}
+
+/* --------------------------------------------------------------------------
    Inicialización
    -------------------------------------------------------------------------- */
 function initApp() {
@@ -108,6 +145,7 @@ function initApp() {
   });
 
   initTheme();
+  initInstall();
 
   setLanguage('es');
 
