@@ -96,7 +96,10 @@
         engine_stage: '⏳ Motor Java — {stage} (solo la primera vez)...',
         engine_fallback: '⚠️ Motor Java no disponible (file:// o sin conexión): modo simulador activo. La app funciona, pero el código no se compila de verdad.',
         engine_timeout: '⏱️ Tiempo límite excedido (¿bucle infinito?): motor reiniciado. Inténtalo de nuevo.',
-        junit_compiling: '⚙️ Compilando y ejecutando tus tests con javac real...'
+        junit_compiling: '⚙️ Compilando y ejecutando tus tests con javac real...',
+        sel_aria_blocks: 'Seleccionar actividad de Bloques',
+        sel_aria_parsons: 'Seleccionar actividad de Parsons',
+        sel_aria_editor: 'Seleccionar actividad de Micro-Editor'
       },
       va: {
         author_badge: 'Autora: Mara Vañó',
@@ -194,6 +197,9 @@
         engine_stage: '⏳ Motor Java — {stage} (només la primera vegada)...',
         engine_fallback: '⚠️ Motor Java no disponible (file:// o sense connexió): mode simulador actiu. L\'app funciona, però el codi no es compila de veritat.',
         engine_timeout: '⏱️ Temps límit excedit (bucle infinit?): motor reiniciat. Intenta-ho de nou.',
-        junit_compiling: '⚙️ Compilant i executant els teus tests amb javac real...'
+        junit_compiling: '⚙️ Compilant i executant els teus tests amb javac real...',
+        sel_aria_blocks: 'Seleccionar activitat de Bloques',
+        sel_aria_parsons: 'Seleccionar activitat de Parsons',
+        sel_aria_editor: 'Seleccionar activitat de Micro-Editor'
       }
     };

@@ -112,8 +112,11 @@ function getRuntime(onProgress) {
 
 /* --------------------------------------------------------------------------
    Ejecuta Java con timeout de 20 s.
+   Si el Worker muere (p. ej. un trap wasm «divide by zero» deja el runtime
+   inservible y la siguiente llamada responde «could not fetch message»),
+   se reinicia el motor y se reintenta UNA vez.
    -------------------------------------------------------------------------- */
-export async function runJava(source, opts = {}, onProgress) {
+export async function runJava(source, opts = {}, onProgress, _retried) {
   const rt = await getRuntime(onProgress);
 
   let timerId = null;
@@ -128,11 +131,22 @@ export async function runJava(source, opts = {}, onProgress) {
   try {
     // El paquete devuelve { ok, output, error, exitCode, stdout, stderr,
     // compileMs, generateMs, runMs }: se devuelve tal cual.
-    return await Promise.race([rt.run(source, opts), timeoutPromise]);
+    const res = await Promise.race([rt.run(source, opts), timeoutPromise]);
+    const dead = res && !res.ok &&
+      /could not fetch message/i.test(String(res.stderr || '') + ' ' + String(res.error || ''));
+    if (dead && !_retried) {
+      resetEngine();
+      return runJava(source, opts, onProgress, true);
+    }
+    return res;
   } catch (err) {
     if (err && err.code === 'ENGINE_TIMEOUT') {
       resetEngine(); // Worker colgado (¿bucle infinito?): destruir y recargar
       throw err;
+    }
+    if (!_retried && err && /could not fetch message/i.test(String(err.message || ''))) {
+      resetEngine();
+      return runJava(source, opts, onProgress, true);
     }
     throw err;
   } finally {

@@ -52,5 +52,12 @@ export function setLanguage(lang) {
     if (val != null) el.textContent = val;
   });
 
+  /* Atributos aria traducidos (p. ej. aria-label de los <select>) */
+  document.querySelectorAll('[data-i18n-aria]').forEach((el) => {
+    const key = el.getAttribute('data-i18n-aria');
+    const val = (I18N[lang] || {})[key] != null ? I18N[lang][key] : I18N.es[key];
+    if (val != null) el.setAttribute('aria-label', val);
+  });
+
   document.dispatchEvent(new CustomEvent('languagechange', { detail: { lang } }));
 }

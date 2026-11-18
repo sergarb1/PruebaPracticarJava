@@ -57,6 +57,8 @@ function applyTheme(theme) {
   const btn = document.getElementById('btn-theme');
   document.documentElement.setAttribute('data-theme', theme);
   try { localStorage.setItem('javalearn_dam_theme', theme); } catch (e) { /* sin storage */ }
+  const tc = document.querySelector('meta[name="theme-color"]');
+  if (tc) tc.setAttribute('content', theme === 'dark' ? '#181825' : '#eff1f5');
   if (btn) {
     /* El icono muestra el tema al que se cambiará */
     btn.textContent = theme === 'dark' ? '☀️' : '🌙';

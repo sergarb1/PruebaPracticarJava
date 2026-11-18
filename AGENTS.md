@@ -9,14 +9,17 @@ python3 -m http.server 8080   # → http://localhost:8080/
 ```
 
 - Los módulos ES y el Worker del motor **no funcionan con `file://`**: siempre servir por HTTP.
-- No hay linter/typecheck configurado. Verificación: `tools/audit.html` (300 compilaciones con el motor real) y revisión manual en el navegador.
+- No hay linter/typecheck configurado. Verificación: `tools/audit.html` (300 compilaciones con el motor real; **objetivo 300/300 PASS**), Lighthouse (100/100/100/100) y revisión manual en el navegador.
 
 ## Arquitectura
 
 ```
 index.html            ← entrada única; 3 paneles de ejercicio + panel home (landing)
 css/theme.css         ← tipografías, scrollbars, variables de tema (claro/oscuro)
-sw.js                 ← Service Worker: caché del motor wasm (unpkg)
+sw.js                 ← Service Worker PWA: caché del shell (precache + SWR),
+                         CDN (Tailwind/Fonts) y motor wasm (unpkg)
+manifest.webmanifest  ← PWA: name/start_url/icons (standalone)
+icons/                ← iconos PNG (192/512/maskable/apple) + SVG fuente
 data/
   i18n-dict.js        ← diccionario ES/VA (AÑADIR claves SIEMPRE en ambos idiomas)
   topics.js           ← catálogo de algoritmos (150 Parsons)

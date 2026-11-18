@@ -44,8 +44,30 @@ function componentType(elems) {
   return 'Object';
 }
 
-function javaArrayLiteral(arr) {
-  if (arr.length === 0) return 'new int[0]';
+/* Tipos de las firmas declaradas (act.params: "double[] notas, int n").
+   En JS 5.0 y 5 son el mismo número, así que el tipo del array hay que
+   tomarlo de la firma; si no, calcularMedia([5.0,…]) genera new int[]{…}
+   y javac lo rechaza al pasarlo a double[]. */
+function parseParamTypes(paramsStr) {
+  if (!paramsStr) return [];
+  return String(paramsStr).split(',').map((p) => {
+    const s = p.trim();
+    const m = s.match(/^(.+?)\s+[A-Za-z_$][\w$]*$/);
+    return m ? m[1].trim() : '';
+  });
+}
+
+/* Tipos de los parámetros de la actividad: act.params si existe o, si no,
+   los extraídos de la firma declarada (act.signature). */
+function paramTypesOf(act) {
+  if (!act) return [];
+  if (act.params) return parseParamTypes(act.params);
+  const m = String(act.signature || '').match(/\(([^)]*)\)/);
+  return parseParamTypes(m ? m[1] : '');
+}
+
+function javaArrayLiteral(arr, forceBaseType) {
+  if (arr.length === 0) return 'new ' + (forceBaseType || 'int') + '[0]';
 
   const nested = arr.every(x => Array.isArray(x));
   if (nested) {
@@ -53,9 +75,11 @@ function javaArrayLiteral(arr) {
     const inner = arr.map(a => '{' + a.map(javaLiteral).join(', ') + '}').join(', ');
     let flat = [];
     arr.forEach(a => { flat = flat.concat(a); });
-    return 'new ' + componentType(flat) + '[][]{' + inner + '}';
+    const t = forceBaseType || componentType(flat);
+    return 'new ' + t + '[][]{' + inner + '}';
   }
-  return 'new ' + componentType(arr) + '[]{' + arr.map(javaLiteral).join(', ') + '}';
+  const t = forceBaseType || componentType(arr);
+  return 'new ' + t + '[]{' + arr.map(javaLiteral).join(', ') + '}';
 }
 
 function javaLiteral(v) {
@@ -100,6 +124,7 @@ export function buildTestDriver(act, userCode) {
   }
 
   const tests = (act && Array.isArray(act.tests)) ? act.tests : [];
+  const pTypes = paramTypesOf(act);
 
   // Nombre del método a probar: act.funcName o, en su defecto, el del test.
   let methodName = (act && act.funcName) ? String(act.funcName) : '';
@@ -113,7 +138,14 @@ export function buildTestDriver(act, userCode) {
   const blocks = tests.map((tc, i) => {
     const n = i + 1;
     const args = Array.isArray(tc.args) ? tc.args : [];
-    const call = cls + '.' + methodName + '(' + args.map(javaLiteral).join(', ') + ')';
+    const argLits = args.map((a, j) => {
+      const pt = pTypes[j] || '';
+      if (Array.isArray(a) && pt.indexOf('[]') !== -1) {
+        return javaArrayLiteral(a, pt.replace(/\[\]/g, ''));
+      }
+      return javaLiteral(a);
+    });
+    const call = cls + '.' + methodName + '(' + argLits.join(', ') + ')';
     const expLit = javaLiteral(tc.exp);
 
     return [
